@@ -5,9 +5,9 @@ using System.Linq;
 using UnityEngine;
 using Utilities;
 
-namespace TribesAndTributes.WFC
+namespace WaveFunctionCollapse
 {
-    public class WaveFunctionCollapse<T, A>
+    public class CellFieldCollapse<T, A>
         where T : Module<T>
     {
         public bool AllCellsCollapsed { get => _entropyHeap.Count == 0; }
@@ -15,7 +15,7 @@ namespace TribesAndTributes.WFC
         private Heap<CellSuperPosition<T, A>> _entropyHeap;
         private System.Random _random;
 
-        public WaveFunctionCollapse(CellField<T, A> cellField)
+        public CellFieldCollapse(CellField<T, A> cellField)
         {
             _cspField = cellField.CreateCellSuperPositions(this);
             _entropyHeap = new Heap<CellSuperPosition<T, A>>(_cspField.Count);

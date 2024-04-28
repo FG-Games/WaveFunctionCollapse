@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 
-namespace TribesAndTributes.WFC
+namespace WaveFunctionCollapse
 {
     [Serializable]
     public struct SuperPosition<T>

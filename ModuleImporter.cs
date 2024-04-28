@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEditor;
 using System.Data;
 
-namespace TribesAndTributes.WFC
+namespace WaveFunctionCollapse
 {
     public static class ModuleImporter<T>
         where T : Module<T>

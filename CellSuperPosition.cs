@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Utilities;
 
-namespace TribesAndTributes.WFC
+namespace WaveFunctionCollapse
 {
     [Serializable]
     public class CellSuperPosition<T, A> : IHeapItem<CellSuperPosition<T, A>>
@@ -14,7 +14,7 @@ namespace TribesAndTributes.WFC
         public List<SuperPosition<T>> SuperPositions; // Multiple module options each in multiple orientations
         public int Entropy { get => getEntropy(); }
         public bool Collapsed { get => _collapsedPosition != -1; }
-        private WaveFunctionCollapse<T, A> _wfc;
+        private CellFieldCollapse<T, A> _wfc;
         private event Action<SuperPosition<T>> _collapse;
         private event Action _decohere;
         [SerializeField] private int _collapsedPosition = -1;
@@ -23,7 +23,7 @@ namespace TribesAndTributes.WFC
 
         // --- Setup --- //
 
-        public CellSuperPosition(Cell<T, A> cell, WaveFunctionCollapse<T, A> wfc)
+        public CellSuperPosition(Cell<T, A> cell, CellFieldCollapse<T, A> wfc)
         {
             Cell = cell;
             _wfc = wfc;            

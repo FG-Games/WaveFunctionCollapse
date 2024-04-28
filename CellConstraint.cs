@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace TribesAndTributes.WFC
+namespace WaveFunctionCollapse
 {
     [Serializable]
     public struct CellConstraint<T> // reduced the entropy of a CellSuperPosition / limits the possibible options of a cell  

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
-namespace TribesAndTributes.WFC
+namespace WaveFunctionCollapse
 {
     public class ModuleGUI<T> : Editor
         where T : Module<T>

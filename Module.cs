@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace TribesAndTributes.WFC
+namespace WaveFunctionCollapse
 {
     [Serializable]
     public abstract class Module<T> : ScriptableObject

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace TribesAndTributes.WFC
+namespace WaveFunctionCollapse
 {
     [Serializable]
     public abstract class Cell<T, A> : MonoBehaviour
@@ -21,7 +21,7 @@ namespace TribesAndTributes.WFC
 
         // --- WFC Events --- //
 
-        public virtual CellSuperPosition<T, A> CreateCSP(WaveFunctionCollapse<T, A> wfc)
+        public virtual CellSuperPosition<T, A> CreateCSP(CellFieldCollapse<T, A> wfc)
         {
             return new CellSuperPosition<T, A>(this, wfc);
         }
@@ -37,6 +37,6 @@ namespace TribesAndTributes.WFC
         public int Seed;
         public abstract Cell<T, A> GetCell(A address);
         public abstract Cell<T, A>[] GetAdjacentCells(A address);
-        public abstract ICSPfield<T, A> CreateCellSuperPositions(WaveFunctionCollapse<T, A> wfc);
+        public abstract ICSPfield<T, A> CreateCellSuperPositions(CellFieldCollapse<T, A> wfc);
     }
 }
