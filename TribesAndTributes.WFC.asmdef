@@ -1,0 +1,16 @@
+{
+    "name": "TribesAndTributes.WFC",
+    "rootNamespace": "",
+    "references": [
+        "GUID:a97e1904b3f1cd345a1df01391bb30a7"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,0 +1,247 @@
+using System;
+using System.Linq;
+using System.Collections.Generic;
+using UnityEngine;
+using Utilities;
+
+namespace TribesAndTributes.WFC
+{
+    [Serializable]
+    public class CellSuperPosition<T, A> : IHeapItem<CellSuperPosition<T, A>>
+        where T : Module<T>
+    {
+        public Cell<T, A> Cell;
+        public List<SuperPosition<T>> SuperPositions; // Multiple module options each in multiple orientations
+        public int Entropy { get => getEntropy(); }
+        public bool Collapsed { get => _collapsedPosition != -1; }
+        private WaveFunctionCollapse<T, A> _wfc;
+        private event Action<SuperPosition<T>> _collapse;
+        private event Action _decohere;
+        [SerializeField] private int _collapsedPosition = -1;
+        [SerializeField] private int _collapsedOrientation = -1;
+
+
+        // --- Setup --- //
+
+        public CellSuperPosition(Cell<T, A> cell, WaveFunctionCollapse<T, A> wfc)
+        {
+            Cell = cell;
+            _wfc = wfc;            
+
+            // WFC Events
+            _collapse += Cell.OnCollapse;
+            _decohere += Cell.OnDecohere;
+            setSuperPosition();
+        }
+
+        private void setSuperPosition()
+        {
+            _collapsedPosition = -1;
+            _collapsedOrientation = -1;
+
+            // Load Modules
+            List<T> allModules = ModuleImporter<T>.GetAllModules();
+            SuperPositions = new List<SuperPosition<T>>();
+            
+            for (int i = 0; i < allModules.Count; i ++)
+                SuperPositions.Add(new SuperPosition<T>(allModules[i]));
+        }
+
+        public void SubscribeToCollapse(Action<SuperPosition<T>> action) => _collapse += action;
+        public void SubscribeToDecohere(Action action) => _decohere += action;
+
+
+        // --- Collapse / Decohere --- //
+
+        public void Collapse (int superPosIndex, int orientationIndex)
+        {
+            _collapsedPosition = superPosIndex;
+            _collapsedOrientation = orientationIndex;
+            collapseSuperPosition();
+        }
+
+        public void CollapseRandom(System.Random random)
+        {
+            _collapsedPosition = random.Next(0, SuperPositions.Count);
+            _collapsedOrientation = random.Next(0, SuperPositions[_collapsedPosition].Orientations.Length);
+            collapseSuperPosition();
+        }
+
+        public void Decohere()
+        {
+            setSuperPosition();
+            _decohere?.Invoke();
+        }
+
+        public void UpdateOrientation(byte orienation)
+        {
+            _collapsedOrientation = orienation;
+        }
+
+        private void collapseSuperPosition()
+        {
+            _collapse?.Invoke(CollapsedPosition);
+            constraintAdjacentCells();
+        }
+
+        private int getEntropy()
+        {
+            int entropy = 0;
+
+            for (int i = 0; i < SuperPositions.Count; i ++)
+                entropy += SuperPositions[i].Orientations.Length;
+
+            return entropy;
+        }
+
+
+        // --- Collapsed Position --- //
+        
+        public byte Orientation { get => SuperPositions[_collapsedPosition].Orientations[_collapsedOrientation]; }
+        public Module<T> Module { get => SuperPositions[_collapsedPosition].Module; }
+        public SuperPosition<T> CollapsedPosition
+        {
+            get
+            {
+                if ( _collapsedPosition == -1 || _collapsedOrientation == -1)
+                    Debug.LogError("These's no collapsed position at " + Cell.Address);
+
+                SuperPosition<T> pos = SuperPositions[_collapsedPosition];
+                return new SuperPosition<T>(new byte[] {pos.Orientations[_collapsedOrientation]}, pos.Module);
+            }
+        }
+
+
+        // --- Constraints --- //
+
+        public CellConstraintSet<T> Constraints
+        {
+            get
+            {
+                if(Collapsed)
+                {
+                    return CollapsedPosition.RotatedContraints(0);
+                }
+                else
+                {
+                    CellConstraintSet<T> combinedConstraints = SuperPositions[0].SuperConstraints;
+
+                    for (int i = 1; i < SuperPositions.Count; i++)
+                        combinedConstraints += SuperPositions[i].SuperConstraints;
+
+                    return combinedConstraints;
+                }
+            }
+        }
+        
+        private void addConstraint(CellConstraint<T> constraint)
+        {
+            if(Collapsed)
+                return;
+
+            int previousEntropy = Entropy;
+
+            // Go through SuperPosition and check for common States / intersections
+            for (int i = 0; i < SuperPositions.Count; i ++)
+            {
+                // Set up potential intersection
+                SuperPosition<T> intersection;
+
+                // Test SuperPosition against SuperPositions in Constraint
+                if(constraint.Intersection(SuperPositions[i], out intersection))
+                {
+                    SuperPositions[i] = intersection;
+                }
+                else
+                {
+                    SuperPositions.Remove(SuperPositions[i]);
+                    i--;                    
+                }
+
+                if(SuperPositions.Count == 0)
+                    Debug.LogError("No collapse possible at " + Cell.Address);
+            }
+
+            // Check if constraint had effect on entropy
+            if(Entropy == previousEntropy)
+                return;
+    
+            // Propagate effect
+            _wfc.Add2EntropyHeap(this);
+            constraintAdjacentCells();
+        }
+
+        private void constraintAdjacentCells()
+        {
+            // The constraints of adjacent cells should ripple / iteratively through the map:
+            // If a collapsed cell enforces a coast tile next to it this will constraints it's neighbours
+            // Combine AdjacentSuperModule<T> of all SuperOrientedModule<T> and continue waves of constrainst
+            // the chain of constraints must only stop if the contraint doesn't have any effect on the cell
+            // You could just use this method, but use combined constraints in case _collapsedState == -1
+
+            Cell<T, A>[] adjacentCells = Cell.GetAdjacentCells();
+            CellConstraint<T>[] constraints = Constraints.Set;
+
+            for (byte side = 0; side < adjacentCells.Length; side ++)
+            {
+                if (adjacentCells[side] == null)
+                    continue;
+
+                CellSuperPosition<T, A> adjacentCSP = _wfc.GetCellSuperPosition(adjacentCells[side].Address);
+                adjacentCSP.addConstraint(constraints[side]);
+            }
+        }
+
+        private void updateConstraints()
+        {
+            if(Collapsed) // ACTUALLY YOU COULD TRY TO DEAL WITH THE COSTRAINTS... Decohere => Collapse
+                return;
+
+            setSuperPosition();
+            Cell<T, A>[] adjacentCells = Cell.GetAdjacentCells();
+
+            for (byte i = 0; i < adjacentCells.Length; i ++)
+            {
+                if(adjacentCells[i] == null || !_wfc.GetCellSuperPosition(adjacentCells[i].Address).Collapsed) // Ignore non-collapsed cells
+                    continue;
+
+                byte adjacentCellOrientation = adjacentCells[i].ModuleOrientation; // Get orientation of collapsed neighbouring module
+                Module<T> adjacentModule = adjacentCells[i].Module;
+                int reflectedAdjacentCellDirection = adjacentModule.AddRotations(adjacentModule.Sides / 2 + i, adjacentCellOrientation); // Get direction from collapsed neighbour to this cell
+                CellConstraint<T> adjacentSuperModule = adjacentModule.Constraints.Set[reflectedAdjacentCellDirection];
+                addConstraint(adjacentSuperModule); // Add constraint to this cell
+            }
+        }
+
+        public void UpdateAdjacentCells()
+        {
+            Cell<T, A>[] adjacentCells = Cell.GetAdjacentCells();
+
+            for (byte i = 0; i < adjacentCells.Length; i ++)
+            {
+                if (adjacentCells[i] == null)
+                    continue;
+                
+                _wfc.GetCellSuperPosition(adjacentCells[i].Address).updateConstraints();
+            }
+        }
+
+
+        // --- Heap --- //
+
+        [SerializeField] int _heapIndex;
+        public int HeapIndex { get => _heapIndex; set => _heapIndex = value; }
+        public int CompareTo(CellSuperPosition<T, A> cspToCompare)
+        {            int compare = Entropy.CompareTo(cspToCompare.Entropy);
+            return -compare;
+        }
+    }
+
+    public interface ICSPfield<T, A>
+        where T : Module<T>
+    {
+        int Count { get; }
+        CellSuperPosition<T, A> GetCellSuperPosition(A a);
+        CellSuperPosition<T, A> GetCellSuperPosition(); // TEMPORARY - GET RID OF THIS!
+    }
+}
