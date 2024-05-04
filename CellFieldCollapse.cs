@@ -49,13 +49,14 @@ namespace WaveFunctionCollapse
         public void CollapseNext()
         {
             if(AllCellsCollapsed)
-            {
-                // Debug.Log("Heap is empty");
                 return;
-            }
 
             CellSuperPosition<T, A> csp = _entropyHeap.RemoveFirst();
-            csp.CollapseRandom(_random);
+
+            if (csp.Collapsed)
+                CollapseNext();
+            else
+                csp.CollapseRandom(_random);
         }
     }
 }

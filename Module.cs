@@ -10,6 +10,8 @@ namespace WaveFunctionCollapse
     public abstract class Module<T> : ScriptableObject
         where T : Module<T>
     {
+        public byte Index;
+
         // Input
         public FeatureFlagMask FeatureFlagMask;
 

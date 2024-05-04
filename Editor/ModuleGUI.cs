@@ -86,6 +86,7 @@ namespace WaveFunctionCollapse
             {
                 _baseTile.UpdateAll();
                 serializedObject.Update();
+                EditorUtility.SetDirty(this);
             }
         }
     }

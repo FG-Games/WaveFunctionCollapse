@@ -24,8 +24,10 @@ namespace WaveFunctionCollapse
                 allModules[i].SetFeatures();
 
             // Run through modules and test the features of each modules's side against the features of other modules sides
-            for (int i = 0; i < allModules.Count; i ++)
+            for (byte i = 0; i < allModules.Count; i ++)
             {
+                allModules[i].Index = i;
+
                 // Set adjacent SuperModules for module
                 CellConstraint<T>[] constraints = new CellConstraint<T>[allModules[i].Features.Length];
 

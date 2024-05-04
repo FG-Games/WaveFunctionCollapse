@@ -73,15 +73,24 @@ namespace WaveFunctionCollapse
             _decohere?.Invoke();
         }
 
-        public void UpdateOrientation(byte orienation)
+        public void SetModule (int moduleIndex, int orientationIndex)
+        {
+            // This method assumes the CSP doesn't have any constraints and the sequence
+            // of all orientations and modules is therefore identical with their array positions 
+            _collapsedPosition = moduleIndex;
+            _collapsedOrientation = orientationIndex;
+            _collapse?.Invoke(CollapsedPosition);
+        }
+
+        /*public void UpdateOrientation(byte orienation)
         {
             _collapsedOrientation = orienation;
-        }
+        }*/
 
         private void collapseSuperPosition()
         {
             _collapse?.Invoke(CollapsedPosition);
-            constraintAdjacentCells();
+            ConstraintAdjacentCells();
         }
 
         private int getEntropy()
@@ -168,10 +177,10 @@ namespace WaveFunctionCollapse
     
             // Propagate effect
             _wfc.Add2EntropyHeap(this);
-            constraintAdjacentCells();
+            ConstraintAdjacentCells();
         }
 
-        private void constraintAdjacentCells()
+        public void ConstraintAdjacentCells()
         {
             // The constraints of adjacent cells should ripple / iteratively through the map:
             // If a collapsed cell enforces a coast tile next to it this will constraints it's neighbours
@@ -192,7 +201,7 @@ namespace WaveFunctionCollapse
             }
         }
 
-        private void updateConstraints()
+        /*private void updateConstraints()
         {
             if(Collapsed) // ACTUALLY YOU COULD TRY TO DEAL WITH THE COSTRAINTS... Decohere => Collapse
                 return;
@@ -224,7 +233,7 @@ namespace WaveFunctionCollapse
                 
                 _wfc.GetCellSuperPosition(adjacentCells[i].Address).updateConstraints();
             }
-        }
+        }*/
 
 
         // --- Heap --- //
