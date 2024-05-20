@@ -48,7 +48,7 @@ namespace WaveFunctionCollapse
         public void SubscribeToCollapse(Action<SuperPosition<T>> action) => _collapse += action;
 
 
-        // --- Collapse / Decohere --- //
+        // --- Collapse --- //
 
         public void Collapse (int superPosIndex, int orientationIndex)
         {
@@ -89,11 +89,6 @@ namespace WaveFunctionCollapse
             _collapse?.Invoke(CollapsedPosition);
         }
 
-        /*public void UpdateOrientation(byte orienation)
-        {
-            _collapsedOrientation = orienation;
-        }*/
-
         private void collapseSuperPosition()
         {
             _collapse?.Invoke(CollapsedPosition);
@@ -113,8 +108,8 @@ namespace WaveFunctionCollapse
 
         // --- Collapsed Position --- //
         
-        public byte Orientation { get => SuperPositions[_collapsedPosition].Orientations[_collapsedOrientation]; }
-        public Module<T> Module { get => SuperPositions[_collapsedPosition].Module; }
+        // public byte Orientation { get => SuperPositions[_collapsedPosition].Orientations[_collapsedOrientation]; }
+        // public Module<T> Module { get => SuperPositions[_collapsedPosition].Module; }
         public SuperPosition<T> CollapsedPosition
         {
             get
@@ -207,40 +202,6 @@ namespace WaveFunctionCollapse
                 adjacentCSP.addConstraint(constraints[side]);
             }
         }
-
-        /*private void updateConstraints()
-        {
-            if(Collapsed) // ACTUALLY YOU COULD TRY TO DEAL WITH THE COSTRAINTS... Decohere => Collapse
-                return;
-
-            setSuperPosition();
-            Cell<T, A>[] adjacentCells = Cell.GetAdjacentCells();
-
-            for (byte i = 0; i < adjacentCells.Length; i ++)
-            {
-                if(adjacentCells[i] == null || !_wfc.GetCellSuperPosition(adjacentCells[i].Address).Collapsed) // Ignore non-collapsed cells
-                    continue;
-
-                byte adjacentCellOrientation = adjacentCells[i].ModuleOrientation; // Get orientation of collapsed neighbouring module
-                Module<T> adjacentModule = adjacentCells[i].Module;
-                int reflectedAdjacentCellDirection = adjacentModule.AddRotations(adjacentModule.Sides / 2 + i, adjacentCellOrientation); // Get direction from collapsed neighbour to this cell
-                CellConstraint<T> adjacentSuperModule = adjacentModule.Constraints.Set[reflectedAdjacentCellDirection];
-                addConstraint(adjacentSuperModule); // Add constraint to this cell
-            }
-        }
-
-        public void UpdateAdjacentCells()
-        {
-            Cell<T, A>[] adjacentCells = Cell.GetAdjacentCells();
-
-            for (byte i = 0; i < adjacentCells.Length; i ++)
-            {
-                if (adjacentCells[i] == null)
-                    continue;
-                
-                _wfc.GetCellSuperPosition(adjacentCells[i].Address).updateConstraints();
-            }
-        }*/
 
 
         // --- Heap --- //
