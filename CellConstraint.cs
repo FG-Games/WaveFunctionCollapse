@@ -109,7 +109,7 @@ namespace WaveFunctionCollapse
         public CellConstraintSet(CellConstraint<T>[] cellConstraints)
         {
             if( cellConstraints.Length == 0 ||
-                cellConstraints.Length != cellConstraints[0].SuperPositions[0].Module.Sides) // HOLY CRAP THAT'S HACKY ... THINK ABOUT A SINGLETON / CONTEXT CLASS
+                cellConstraints.Length != cellConstraints[0].SuperPositions[0].Module.Sides) // HOLY CRAP THAT'S HACKY ... 
             {
                 Debug.LogError("CellConstraintSet must be of size " + cellConstraints[0].SuperPositions[0].Module.Sides);
             }

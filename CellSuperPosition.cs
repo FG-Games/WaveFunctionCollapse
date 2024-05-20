@@ -16,7 +16,6 @@ namespace WaveFunctionCollapse
         public bool Collapsed { get => _collapsedPosition != -1; }
         private CellFieldCollapse<T, A> _wfc;
         private event Action<SuperPosition<T>> _collapse;
-        private event Action _decohere;
         [SerializeField] private int _collapsedPosition = -1;
         [SerializeField] private int _collapsedOrientation = -1;
 
@@ -30,7 +29,6 @@ namespace WaveFunctionCollapse
 
             // WFC Events
             _collapse += Cell.OnCollapse;
-            _decohere += Cell.OnDecohere;
             setSuperPosition();
         }
 
@@ -48,7 +46,6 @@ namespace WaveFunctionCollapse
         }
 
         public void SubscribeToCollapse(Action<SuperPosition<T>> action) => _collapse += action;
-        public void SubscribeToDecohere(Action action) => _decohere += action;
 
 
         // --- Collapse / Decohere --- //
@@ -60,17 +57,27 @@ namespace WaveFunctionCollapse
             collapseSuperPosition();
         }
 
+        public void CollapseToModule (int moduleIndex, System.Random random)
+        {
+            for (int i = 0; i < SuperPositions.Count; i ++)
+            {
+                if(SuperPositions[i].Module.Index == moduleIndex)
+                {
+                    _collapsedPosition = i;
+                    _collapsedOrientation = random.Next(0, SuperPositions[_collapsedPosition].Orientations.Length);
+                    collapseSuperPosition();
+                    return;
+                }
+            }
+
+            CollapseRandom(random);
+        }
+
         public void CollapseRandom(System.Random random)
         {
             _collapsedPosition = random.Next(0, SuperPositions.Count);
             _collapsedOrientation = random.Next(0, SuperPositions[_collapsedPosition].Orientations.Length);
             collapseSuperPosition();
-        }
-
-        public void Decohere()
-        {
-            setSuperPosition();
-            _decohere?.Invoke();
         }
 
         public void SetModule (int moduleIndex, int orientationIndex)
@@ -251,6 +258,5 @@ namespace WaveFunctionCollapse
     {
         int Count { get; }
         CellSuperPosition<T, A> GetCellSuperPosition(A a);
-        CellSuperPosition<T, A> GetCellSuperPosition(); // TEMPORARY - GET RID OF THIS!
     }
 }

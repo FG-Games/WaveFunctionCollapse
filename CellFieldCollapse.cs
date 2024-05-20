@@ -24,15 +24,6 @@ namespace WaveFunctionCollapse
 
         public CellSuperPosition<T, A> GetCellSuperPosition(A address) => _cspField.GetCellSuperPosition(address);
 
-        public void InitialDesign()
-        {
-            // temporay solution => collapse a random tile
-            if(_entropyHeap.Count == 0)
-            {
-                _cspField.GetCellSuperPosition().CollapseRandom(_random);
-            }
-        }
-
         public void Add2EntropyHeap(CellSuperPosition<T, A> csp)
         {
             if(csp.Collapsed)
@@ -57,6 +48,11 @@ namespace WaveFunctionCollapse
                 CollapseNext();
             else
                 csp.CollapseRandom(_random);
+        }
+
+        public void CollapseAt(A address, int index)
+        {
+            _cspField.GetCellSuperPosition(address).CollapseToModule(index, _random);
         }
     }
 }
