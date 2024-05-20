@@ -6,7 +6,6 @@ using UnityEngine;
 
 namespace WaveFunctionCollapse
 {
-    [Serializable]
     public abstract class Module<T> : ScriptableObject
         where T : Module<T>
     {
@@ -23,9 +22,9 @@ namespace WaveFunctionCollapse
         public int FeatureFlags;
 
         // Constraints
-        public CellConstraintSet<T> Constraints { get => _constraints; } // Constraint adjacent cells
-        public void UpdateConstraints(CellConstraintSet<T> constraints) => _constraints = constraints;
-        [SerializeField] private CellConstraintSet<T> _constraints;
+        public CellConstraintSet<T> Constraints { get => new CellConstraintSet<T>(_constraints); } // Constraint adjacent cells
+        public virtual void UpdateConstraints(CellConstraint<T>[] constraints) => _constraints = constraints;
+        [SerializeField] private CellConstraint<T>[] _constraints;
 
         
         public abstract byte[] Orientations { get; } // MAYBE PUT THIS SOMEWHERE ELSE... IT IS MORE PART OF A TILE SYSTEM CONCEPT THAN A SINGLE TILE // In general orientation would be a sequence of numbers, but just in case it can be defined as any aray of bytes
@@ -75,7 +74,7 @@ namespace WaveFunctionCollapse
         {
             Features = new byte[0];
             FeatureFlags = 0;
-            _constraints = new CellConstraintSet<T>();
+            _constraints = new CellConstraint<T>[0];
         }
     }
 

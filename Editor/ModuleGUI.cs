@@ -8,16 +8,18 @@ namespace WaveFunctionCollapse
     public class ModuleGUI<T> : Editor
         where T : Module<T>
     {
-        T _baseTile;
+        T _module;
 
-        SerializedProperty _features, _featuresReflected, _featureFlagMask; // Features
+        SerializedProperty _index, _features, _featuresReflected, _featureFlagMask; // Features
         SerializedProperty _constraintSet, _constraints;
 
         public override void OnInspectorGUI()
         {
+            FindProperties();
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.Space(10);
-            FindProperties();            
+            DrawIndex();
+            EditorGUILayout.Space(10);
             DrawFeatures();
             EditorGUILayout.Space(20);
             DrawConstraints("Constraint Set");
@@ -28,14 +30,16 @@ namespace WaveFunctionCollapse
                 serializedObject.ApplyModifiedProperties();
         }
 
+        public void DrawIndex() => EditorGUILayout.LabelField(_index.intValue.ToString(), EditorStyles.boldLabel);
+
         public virtual void FindProperties()
         {
-            _baseTile          = (T) target;
+            _module            = (T) target;
+            _index             = serializedObject.FindProperty("Index");
             _features          = serializedObject.FindProperty("Features");
             _featuresReflected = serializedObject.FindProperty("FeaturesReflected");
             _featureFlagMask   = serializedObject.FindProperty("FeatureFlagMask");
-            _constraintSet     = serializedObject.FindProperty("_constraints");
-            _constraints       = _constraintSet.FindPropertyRelative("_set");
+            _constraints       = serializedObject.FindProperty("_constraints");
         }
 
         public virtual void DrawFeatures()
@@ -84,9 +88,8 @@ namespace WaveFunctionCollapse
         {
             if (GUILayout.Button(label))
             {
-                _baseTile.UpdateAll();
+                _module.UpdateAll();
                 serializedObject.Update();
-                EditorUtility.SetDirty(this);
             }
         }
     }

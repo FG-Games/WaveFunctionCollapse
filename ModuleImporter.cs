@@ -38,7 +38,8 @@ namespace WaveFunctionCollapse
                     constraints[side] = new CellConstraint<T>(states.ToArray());
                 }
 
-                allModules[i].UpdateConstraints(new CellConstraintSet<T>(constraints));
+                allModules[i].UpdateConstraints(constraints);                
+                EditorUtility.SetDirty(allModules[i]);
             }
 
             void evaluateSideFeature(int side, T module)
@@ -83,6 +84,8 @@ namespace WaveFunctionCollapse
 
 
         // --- Get BaseTiles --- //
+
+        // ALTERNATIVE METHOD THAT EXCLUDES "UNIQUE" TILES
 
         public static List<T> GetAllModules()
         {
