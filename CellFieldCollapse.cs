@@ -22,6 +22,8 @@ namespace WaveFunctionCollapse
             _random = new System.Random(cellField.Seed);
         }
 
+        public void UpdateSeed(int seed) => _random = new System.Random(seed);
+
         public CellSuperPosition<T, A> GetCellSuperPosition(A address) => _cspField.GetCellSuperPosition(address);
 
         public void Add2EntropyHeap(CellSuperPosition<T, A> csp)
