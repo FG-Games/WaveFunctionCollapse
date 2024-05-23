@@ -1,7 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace WaveFunctionCollapse
@@ -13,6 +10,9 @@ namespace WaveFunctionCollapse
 
         // Input
         public FeatureFlagMask FeatureFlagMask;
+
+        // THERE SHOULD BE POSSIBILITY TO EXCLUDE "UNIQUE" TILES, 
+        // LIKE PLAYER STARTS OR DECORATIVE / STORYTELLLING TILES
 
         // Features
         public abstract string ID { get; }
@@ -27,7 +27,7 @@ namespace WaveFunctionCollapse
         [SerializeField] private CellConstraint<T>[] _constraints;
 
         
-        public abstract byte[] Orientations { get; } // MAYBE PUT THIS SOMEWHERE ELSE... IT IS MORE PART OF A TILE SYSTEM CONCEPT THAN A SINGLE TILE // In general orientation would be a sequence of numbers, but just in case it can be defined as any aray of bytes
+        public abstract byte[] Orientations { get; } // MAYBE MAKE THIS PART OF AN OVERALL HEX / QUAD / CUBE SETUP 
         public byte AddRotations(int rotationA, int rotationB) => (byte)((rotationA + rotationB) % Sides);
 
 

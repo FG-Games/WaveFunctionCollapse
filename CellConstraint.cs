@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -28,11 +27,12 @@ namespace WaveFunctionCollapse
         private CellConstraint<T> merge(CellConstraint<T> constraint) // Merge Contraints 
         {
             List<SuperPosition<T>> combinedSuperPositions = SuperPositions.ToList();
+            SuperPosition<T> merdedPosition = new SuperPosition<T>();
 
             for (int i = 0; i < constraint.SuperPositions.Length; i ++)
             {
                 bool containedInConstraint = false;
-                SuperPosition<T> merdedPosition = new SuperPosition<T>();
+                merdedPosition = new SuperPosition<T>();
 
                 for (int j = 0; j < SuperPositions.Length; j ++)
                 {
@@ -108,11 +108,11 @@ namespace WaveFunctionCollapse
 
         public CellConstraintSet(CellConstraint<T>[] cellConstraints)
         {
-            if( cellConstraints.Length == 0 ||
+            /*if( cellConstraints.Length == 0 ||
                 cellConstraints.Length != cellConstraints[0].SuperPositions[0].Module.Sides) // HOLY CRAP THAT'S HACKY ... 
             {
                 Debug.LogError("CellConstraintSet must be of size " + cellConstraints[0].SuperPositions[0].Module.Sides);
-            }
+            }*/
 
             _set = cellConstraints;
         }

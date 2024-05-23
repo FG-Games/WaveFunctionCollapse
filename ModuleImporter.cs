@@ -1,7 +1,5 @@
 using System.Collections.Generic;
-using UnityEngine;
 using UnityEditor;
-using System.Data;
 
 namespace WaveFunctionCollapse
 {
@@ -84,8 +82,6 @@ namespace WaveFunctionCollapse
 
 
         // --- Get BaseTiles --- //
-
-        // ALTERNATIVE METHOD THAT EXCLUDES "UNIQUE" TILES
 
         public static List<T> GetAllModules()
         {
