@@ -47,6 +47,13 @@ namespace WaveFunctionCollapse
                 csp.CollapseRandom(_random);
         }
 
+        public void CollapseAll()
+        {
+            while (!AllCellsCollapsed)
+                CollapseNext();
+        }
+
+
         public void CollapseAt(A address, int index)
         {
             _cspField.GetCellSuperPosition(address).CollapseToModule(index, _random);
