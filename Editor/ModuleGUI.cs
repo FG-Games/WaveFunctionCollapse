@@ -36,8 +36,8 @@ namespace WaveFunctionCollapse
         {
             _module            = (T) target;
             _index             = serializedObject.FindProperty("Index");
-            _features          = serializedObject.FindProperty("Features");
-            _featuresReflected = serializedObject.FindProperty("FeaturesReflected");
+            _features          = serializedObject.FindProperty("_features");
+            _featuresReflected = serializedObject.FindProperty("_featuresReflected");
             _featureFlagMask   = serializedObject.FindProperty("FeatureFlagMask");
             _constraints       = serializedObject.FindProperty("_constraints");
         }
@@ -79,7 +79,7 @@ namespace WaveFunctionCollapse
         public virtual void DrawSuperPositions(int i)
         {
             SerializedProperty superPosition = _constraints.GetArrayElementAtIndex(i).FindPropertyRelative("SuperPositions");
-            string hexSideFeature = _features.GetArrayElementAtIndex(i).intValue.ToString();
+            string hexSideFeature = _module.Features[i].ToString();
             
             EditorGUILayout.PropertyField(superPosition, new GUIContent("Constraints for side " + i.ToString() + " | Feature: " + hexSideFeature));
         }

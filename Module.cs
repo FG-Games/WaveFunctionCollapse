@@ -17,9 +17,12 @@ namespace WaveFunctionCollapse
         // Features
         public abstract string ID { get; }
         public abstract int Sides { get; }
-        public byte[] Features;
-        public byte[] FeaturesReflected;
+        public virtual byte[] Features { get => _features; }
+        public virtual byte[] FeaturesReflected { get => _featuresReflected; }
         public int FeatureFlags;
+
+        [SerializeField] protected byte[] _features;
+        [SerializeField] protected byte[] _featuresReflected;
 
         // Constraints
         public CellConstraintSet<T> Constraints { get => new CellConstraintSet<T>(_constraints); } // Constraint adjacent cells
@@ -42,18 +45,18 @@ namespace WaveFunctionCollapse
 
             Clear();
             string meshName = ID;   
-            Features = new byte[Sides]; 
-            FeaturesReflected = new byte[Sides]; 
+            _features = new byte[Sides]; 
+            _featuresReflected = new byte[Sides]; 
             FeatureFlags = 0;
 
             // Get features
-            for (int i = 0; i < Features.Length; i ++)
+            for (int i = 0; i < _features.Length; i ++)
             {
                 int a = int.Parse(meshName.Substring( i,                        1));
-                int b = int.Parse(meshName.Substring((i + 1) % Features.Length, 1));
+                int b = int.Parse(meshName.Substring((i + 1) % _features.Length, 1));
 
-                Features[i]                                          = (byte)(10 * a + b);
-                FeaturesReflected[(i + Sides / 2) % Features.Length] = (byte)(10 * b + a);
+                _features[i]                                          = (byte)(10 * a + b);
+                _featuresReflected[(i + Sides / 2) % Features.Length] = (byte)(10 * b + a);
             }
 
             // Set flags
@@ -72,9 +75,9 @@ namespace WaveFunctionCollapse
 
         public virtual void Clear()
         {
-            Features = new byte[0];
-            FeatureFlags = 0;
+            _features = new byte[0];            
             _constraints = new CellConstraint<T>[0];
+            FeatureFlags = 0;
         }
     }
 
