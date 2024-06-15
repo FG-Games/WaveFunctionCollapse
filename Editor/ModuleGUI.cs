@@ -96,13 +96,17 @@ namespace WaveFunctionCollapse
 
     public class SuperPositionDrawer : PropertyDrawer
     {
+        private static Color s_gray = new Color(0.4f, 0.4f, 0.4f, 1);
+
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             EditorGUI.BeginProperty(position, label, property);
 
             // Get the sub-properties of BaseTileNeighbour
             SerializedProperty orientationsProperty = property.FindPropertyRelative("Orientations");
-            SerializedProperty neighbourProperty = property.FindPropertyRelative("Module");
+            SerializedProperty constraintProperty = property.FindPropertyRelative("Module");
+            SerializedObject moduleObject = new SerializedObject(constraintProperty.objectReferenceValue);
+            SerializedProperty passiveProperty = moduleObject.FindProperty("Passive");
 
             // Calculate label width
             float labelWidth = EditorGUIUtility.labelWidth;
@@ -110,7 +114,7 @@ namespace WaveFunctionCollapse
             propertyRect.width -= labelWidth;
             propertyRect.x += labelWidth;
 
-            // Draw the neighbour's name and orientation values as a label
+            // Draw the neighbour's name and constraint values as a label
             string orientationsString = "";
 
             for (int i = 0; i < orientationsProperty.arraySize; i++)
@@ -120,7 +124,11 @@ namespace WaveFunctionCollapse
                     orientationsString += ", ";
             }
 
-            EditorGUI.LabelField(position, neighbourProperty.objectReferenceValue != null ? neighbourProperty.objectReferenceValue.name + " [ " + orientationsString + " ]" : "None");
+            // Create a new GUIStyle and set its text color to red
+            GUIStyle colorStyle = new GUIStyle(EditorStyles.label);
+            colorStyle.normal.textColor = passiveProperty.boolValue ? s_gray : Color.black;
+
+            EditorGUI.LabelField(position, constraintProperty.objectReferenceValue != null ? constraintProperty.objectReferenceValue.name + " [ " + orientationsString + " ]" : "None", colorStyle);
             EditorGUI.EndProperty();
         }
     }

@@ -16,6 +16,7 @@ namespace WaveFunctionCollapse
         private event Action<SuperPosition<T>> _collapse;
         [SerializeField] private int _collapsedPosition = -1;
         [SerializeField] private int _collapsedOrientation = -1;
+        private List<int> _activeModules; // PriorityModules
 
 
         // --- Setup --- //
@@ -73,7 +74,17 @@ namespace WaveFunctionCollapse
 
         public void CollapseRandom(System.Random random)
         {
-            _collapsedPosition = random.Next(0, SuperPositions.Count);
+            _activeModules = new List<int>();
+
+            for(int i = 0; i < SuperPositions.Count; i ++)
+                if(!SuperPositions[i].Module.Passive)
+                    _activeModules.Add(i);
+
+            if(_activeModules.Count > 0)
+                _collapsedPosition = _activeModules[random.Next(0, _activeModules.Count)];
+            else
+                _collapsedPosition = random.Next(0, SuperPositions.Count);
+
             _collapsedOrientation = random.Next(0, SuperPositions[_collapsedPosition].Orientations.Length);
             collapseSuperPosition();
         }
