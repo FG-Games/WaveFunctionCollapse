@@ -31,8 +31,8 @@ namespace WaveFunctionCollapse
         [SerializeField] private CellConstraint<T>[] _constraints;
 
         
-        public abstract byte[] Orientations { get; } // MAYBE MAKE THIS PART OF AN OVERALL HEX / QUAD / CUBE SETUP 
-        public byte AddRotations(int rotationA, int rotationB) => (byte)((rotationA + rotationB) % Sides);
+        public abstract int[] Orientations { get; } // MAYBE MAKE THIS PART OF AN OVERALL HEX / QUAD / CUBE SETUP 
+        public int AddRotations(int rotationA, int rotationB) => ((rotationA + rotationB) % Sides);
 
 
         public virtual void SetFeatures()

@@ -9,7 +9,7 @@ namespace WaveFunctionCollapse
     {
         public A Address;
         public abstract Module<T> Module { get; }
-        public abstract byte ModuleOrientation { get; } 
+        public abstract int ModuleOrientation { get; } 
         public abstract CellField<T, A> CellField { get; }
 
 

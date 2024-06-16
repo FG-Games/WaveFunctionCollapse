@@ -15,7 +15,7 @@ namespace WaveFunctionCollapse
         {
             List<T> allModules = GetAllModules();
             List<SuperPosition<T>> states = new List<SuperPosition<T>>();
-            List<byte> orientations = new List<byte>();
+            List<int> orientations = new List<int>();
 
             // Make sure all Module's features are updated
             for (int i = 0; i < allModules.Count; i ++)
@@ -60,7 +60,7 @@ namespace WaveFunctionCollapse
             void evaluateAdjacentSideFeature(int side, T module, T adjacentModule)
             {
                 byte feature = module.Features[side]; 
-                orientations = new List<byte>();
+                orientations = new List<int>();
 
                 for (byte adjacentSide = 0; adjacentSide < adjacentModule.Sides; adjacentSide ++)
                 {

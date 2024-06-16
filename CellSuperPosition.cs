@@ -17,6 +17,10 @@ namespace WaveFunctionCollapse
         [SerializeField] private int _collapsedPosition = -1;
         [SerializeField] private int _collapsedOrientation = -1;
         private List<int> _activeModules; // PriorityModules
+        private Cell<T, A>[] _adjacentCells;
+        private CellSuperPosition<T, A> _adjacentCSP;
+        private CellConstraint<T>[] _constraints;
+        private SuperPosition<T> _intersection;
 
 
         // --- Setup --- //
@@ -127,7 +131,7 @@ namespace WaveFunctionCollapse
                     Debug.LogError("These's no collapsed position at " + Cell.Address);
 
                 SuperPosition<T> pos = SuperPositions[_collapsedPosition];
-                return new SuperPosition<T>(new byte[] {pos.Orientations[_collapsedOrientation]}, pos.Module);
+                return new SuperPosition<T>(new int[] {pos.Orientations[_collapsedOrientation]}, pos.Module);
             }
         }
 
@@ -164,13 +168,10 @@ namespace WaveFunctionCollapse
             // Go through SuperPosition and check for common States / intersections
             for (int i = 0; i < SuperPositions.Count; i ++)
             {
-                // Set up potential intersection
-                SuperPosition<T> intersection;
-
                 // Test SuperPosition against SuperPositions in Constraint
-                if(constraint.Intersection(SuperPositions[i], out intersection))
+                if(constraint.Intersection(SuperPositions[i], out _intersection))
                 {
-                    SuperPositions[i] = intersection;
+                    SuperPositions[i] = _intersection;
                 }
                 else
                 {
@@ -199,16 +200,18 @@ namespace WaveFunctionCollapse
             // the chain of constraints must only stop if the contraint doesn't have any effect on the cell
             // You could just use this method, but use combined constraints in case _collapsedState == -1
 
-            Cell<T, A>[] adjacentCells = Cell.GetAdjacentCells();
-            CellConstraint<T>[] constraints = Constraints.Set;
+            if(_adjacentCells == null)
+                _adjacentCells = Cell.GetAdjacentCells();
+            
+            _constraints = Constraints.Set;
 
-            for (byte side = 0; side < adjacentCells.Length; side ++)
+            for (byte side = 0; side < _adjacentCells.Length; side ++)
             {
-                if (adjacentCells[side] == null)
+                if (_adjacentCells[side] == null)
                     continue;
 
-                CellSuperPosition<T, A> adjacentCSP = _wfc.GetCellSuperPosition(adjacentCells[side].Address);
-                adjacentCSP.addConstraint(constraints[side]);
+                _adjacentCSP = _wfc.GetCellSuperPosition(_adjacentCells[side].Address);
+                _adjacentCSP.addConstraint(_constraints[side]);
             }
         }
 
@@ -218,7 +221,8 @@ namespace WaveFunctionCollapse
         [SerializeField] int _heapIndex;
         public int HeapIndex { get => _heapIndex; set => _heapIndex = value; }
         public int CompareTo(CellSuperPosition<T, A> cspToCompare)
-        {            int compare = Entropy.CompareTo(cspToCompare.Entropy);
+        {
+            int compare = Entropy.CompareTo(cspToCompare.Entropy);
             return -compare;
         }
     }

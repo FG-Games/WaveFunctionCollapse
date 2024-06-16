@@ -8,10 +8,10 @@ namespace WaveFunctionCollapse
     public struct SuperPosition<T>
         where T : Module<T>
     {
-        public byte[] Orientations;
+        public int[] Orientations;
         public T Module;
 
-        public SuperPosition(byte[] orientations, T module)
+        public SuperPosition(int[] orientations, T module)
         {
             Orientations = orientations;
             Module = module;
@@ -30,7 +30,7 @@ namespace WaveFunctionCollapse
             if(reference.Module != Module)
                 return false;
 
-            HashSet<byte> unionOrientations = Orientations.ToHashSet();
+            HashSet<int> unionOrientations = Orientations.ToHashSet();
             unionOrientations.UnionWith(reference.Orientations.ToHashSet());
 
             intersection = new SuperPosition<T>(unionOrientations.ToArray(), Module);
@@ -44,7 +44,7 @@ namespace WaveFunctionCollapse
             if(reference.Module != Module)
                 return false;
 
-            byte[] intersectingOrientations = Orientations.Intersect(reference.Orientations).ToArray();
+            int[] intersectingOrientations = Orientations.Intersect(reference.Orientations).ToArray();
 
             if (intersectingOrientations.Length == 0)
                 return false;
@@ -55,7 +55,7 @@ namespace WaveFunctionCollapse
 
         public SuperPosition<T> Rotate(int rotation)
         {            
-            byte[] orientations = new byte[Orientations.Length];
+            int[] orientations = new int[Orientations.Length];
 
             // Add rotation offset to orientations
             for (int i = 0; i < Orientations.Length; i ++)
