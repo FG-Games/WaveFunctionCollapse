@@ -15,7 +15,7 @@ namespace WaveFunctionCollapse
         {
             List<T> allModules = GetAllModules();
             List<SuperPosition<T>> states = new List<SuperPosition<T>>();
-            List<int> orientations = new List<int>();
+            int orientations;
 
             // Make sure all Module's features are updated
             for (int i = 0; i < allModules.Count; i ++)
@@ -59,7 +59,7 @@ namespace WaveFunctionCollapse
 
             void evaluateAdjacentSideFeature(int side, T module, T adjacentModule)
             {
-                byte feature = module.Features[side]; 
+                /*byte feature = module.Features[side]; 
                 orientations = new List<int>();
 
                 for (byte adjacentSide = 0; adjacentSide < adjacentModule.Sides; adjacentSide ++)
@@ -76,7 +76,27 @@ namespace WaveFunctionCollapse
                 }
 
                 if(orientations.Count > 0)
-                    states.Add(new SuperPosition<T>(orientations.ToArray(), adjacentModule));
+                    states.Add(new SuperPosition<T>(orientations.ToArray(), adjacentModule));*/
+
+                byte feature = module.Features[side];
+                orientations = 0; // Initialize the bitmask
+
+                for (byte adjacentSide = 0; adjacentSide < adjacentModule.Sides; adjacentSide++)
+                {
+                    if (feature == adjacentModule.FeaturesReflected[adjacentSide])
+                    {
+                        int adjacentOrientation = (adjacentSide - side) % adjacentModule.Sides;
+
+                        if (adjacentOrientation < 0)
+                            adjacentOrientation += adjacentModule.Sides;
+
+                        // Set the corresponding bit in the bitmask
+                        orientations |= (1 << adjacentOrientation);
+                    }
+                }
+
+                if(orientations > 0)
+                    states.Add(new SuperPosition<T>(orientations, adjacentModule));
             }
         }
 

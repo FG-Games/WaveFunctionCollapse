@@ -116,12 +116,20 @@ namespace WaveFunctionCollapse
 
             // Draw the neighbour's name and constraint values as a label
             string orientationsString = "";
+            int orientations = orientationsProperty.intValue;
+            int orientation = 0;
 
-            for (int i = 0; i < orientationsProperty.arraySize; i++)
+            while (orientations > 0)
             {
-                orientationsString += orientationsProperty.GetArrayElementAtIndex(i).intValue.ToString();
-                if (i < orientationsProperty.arraySize - 1)
-                    orientationsString += ", ";
+                    // Get smallest rotation / the position of the lowest set bit
+                    orientation = (int)Math.Log(orientations & -orientations, 2);
+                    orientationsString += orientation.ToString();
+
+                    // Clear the lowest set bit
+                    orientations &= (orientations - 1);
+
+                    if(orientations > 0)
+                        orientationsString += ", ";
             }
 
             // Create a new GUIStyle and set its text color to red

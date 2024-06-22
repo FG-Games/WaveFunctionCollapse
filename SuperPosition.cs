@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace WaveFunctionCollapse
 {
@@ -8,10 +9,10 @@ namespace WaveFunctionCollapse
     public struct SuperPosition<T>
         where T : Module<T>
     {
-        public int[] Orientations;
+        public int Orientations; // Bitmask
         public T Module;
 
-        public SuperPosition(int[] orientations, T module)
+        public SuperPosition(int orientations, T module)
         {
             Orientations = orientations;
             Module = module;
@@ -23,17 +24,56 @@ namespace WaveFunctionCollapse
             Module = module;
         }
 
-        public bool Union(SuperPosition<T> reference, out SuperPosition<T> intersection)
+
+        // --- Orientations --- //
+
+        public int GetFirstOrientation { get => (int)Math.Log(Orientations & -Orientations, 2); } // Get smallest rotation / the position of the lowest set bit
+
+        public int OrientationCount
         {
-            intersection = reference;
+            get
+            {
+                int orientations = Orientations;
+                int count = 0;                
+
+                while (orientations > 0)
+                {
+                    orientations &= (orientations - 1); // Clear the lowest set bit
+                    count++;
+                }
+                return count;
+            }
+        }
+
+        public int GetOrientation(int index)
+        {
+            int orientations = Orientations;
+            int orientation = 0;
+            int count = 0;
+
+            while (orientations > 0)
+            {
+                orientation = (int)Math.Log(orientations & -orientations, 2);
+
+                if (count == index)
+                    return (int)orientation;
+
+                orientations &= (orientations - 1);
+                count ++;
+            }
+
+            throw new ArgumentOutOfRangeException(nameof(index), $"Index is {index}, but must be between 0 and {OrientationCount}. Orientations is {Orientations} / {Convert.ToString(Orientations, 2)}");
+        }
+
+        public bool Union(SuperPosition<T> reference, out SuperPosition<T> union)
+        {
+            union = reference;
             
             if(reference.Module != Module)
                 return false;
 
-            HashSet<int> unionOrientations = Orientations.ToHashSet();
-            unionOrientations.UnionWith(reference.Orientations.ToHashSet());
-
-            intersection = new SuperPosition<T>(unionOrientations.ToArray(), Module);
+            int unionOrientations = Orientations | reference.Orientations;
+            union = new SuperPosition<T>(Orientations | reference.Orientations, Module);
             return true;
         }
 
@@ -44,41 +84,42 @@ namespace WaveFunctionCollapse
             if(reference.Module != Module)
                 return false;
 
-            int[] intersectingOrientations = Orientations.Intersect(reference.Orientations).ToArray();
-
-            if (intersectingOrientations.Length == 0)
-                return false;
-                
+            int intersectingOrientations = Orientations & reference.Orientations;                
             intersection = new SuperPosition<T>(intersectingOrientations, Module);
-            return true;
+            return intersectingOrientations > 0;
         }
 
         public SuperPosition<T> Rotate(int rotation)
-        {            
-            int[] orientations = new int[Orientations.Length];
-
-            // Add rotation offset to orientations
-            for (int i = 0; i < Orientations.Length; i ++)
-                orientations[i] = Module.AddRotations(rotation, Orientations[i]);
-
-            return new SuperPosition<T> (orientations, Module);
+        {
+            int rotatedOrientations = ((Orientations << rotation) | (Orientations >> (6 - rotation))) & 0x3F;
+            return new SuperPosition<T> (rotatedOrientations, Module);
         }
 
 
         // --- Constraints --- //
 
-        public CellConstraintSet<T> RotatedContraints(int i) => Module.Constraints * Orientations[i];
+        public CellConstraintSet<T> FirstOrientedContraints { get => Module.Constraints * GetFirstOrientation; }
 
         public CellConstraintSet<T> SuperConstraints
         {
             get
             {
-                // Combine module constraints of all possible orientations
-                CellConstraintSet<T> superConstraints = RotatedContraints(0);
+                // Combine module constraints of all possible orientations                
+                CellConstraintSet<T> superConstraints = FirstOrientedContraints;
 
-                for (int i = 1; i < Orientations.Length; i ++)
-                    superConstraints += RotatedContraints(i);
+                int rotation = 0;
+                int orientations = Orientations;
+                orientations &= (orientations - 1);
 
+                while (orientations > 0)
+                {
+                    // Get smallest rotation / the position of the lowest set bit
+                    rotation = (int)Math.Log(orientations & -orientations, 2);
+                    superConstraints += Module.Constraints * rotation;
+
+                    // Clear the lowest set bit
+                    orientations &= (orientations - 1);
+                }
                 return superConstraints;
             }
         }
@@ -89,14 +130,14 @@ namespace WaveFunctionCollapse
         public static bool operator == (SuperPosition<T> a, SuperPosition<T> b)
         {
             return
-            a.Orientations.SequenceEqual(b.Orientations) &&
+            a.Orientations == b.Orientations &&
             a.Module == b.Module;
         }
 
         public static bool operator != (SuperPosition<T> a, SuperPosition<T> b)
         {
             return
-            !a.Orientations.SequenceEqual(b.Orientations) ||
+            a.Orientations != b.Orientations ||
             a.Module != b.Module;
         }
 
@@ -114,11 +155,7 @@ namespace WaveFunctionCollapse
             unchecked
             {
                 int hash = 17;
-
-                if (Orientations != null)
-                    for (int i = 1; i < Orientations.Length; i ++)
-                        hash = hash * 31 + Orientations[i].GetHashCode();
-
+                hash = hash * 31 + Orientations.GetHashCode();
                 hash = hash * 31 + (Module != null ? Module.GetHashCode() : 0);
                 return hash;
             }

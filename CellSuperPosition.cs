@@ -67,7 +67,7 @@ namespace WaveFunctionCollapse
                 if(SuperPositions[i].Module.Index == moduleIndex)
                 {
                     _collapsedPosition = i;
-                    _collapsedOrientation = random.Next(0, SuperPositions[_collapsedPosition].Orientations.Length);
+                    _collapsedOrientation = random.Next(0, SuperPositions[_collapsedPosition].OrientationCount);
                     collapseSuperPosition();
                     return;
                 }
@@ -89,7 +89,7 @@ namespace WaveFunctionCollapse
             else
                 _collapsedPosition = random.Next(0, SuperPositions.Count);
 
-            _collapsedOrientation = random.Next(0, SuperPositions[_collapsedPosition].Orientations.Length);
+            _collapsedOrientation = random.Next(0, SuperPositions[_collapsedPosition].OrientationCount);
             collapseSuperPosition();
         }
 
@@ -113,7 +113,7 @@ namespace WaveFunctionCollapse
             int entropy = 0;
 
             for (int i = 0; i < SuperPositions.Count; i ++)
-                entropy += SuperPositions[i].Orientations.Length;
+                entropy += SuperPositions[i].OrientationCount;
 
             return entropy;
         }
@@ -131,7 +131,9 @@ namespace WaveFunctionCollapse
                     Debug.LogError("These's no collapsed position at " + Cell.Address);
 
                 SuperPosition<T> pos = SuperPositions[_collapsedPosition];
-                return new SuperPosition<T>(new int[] {pos.Orientations[_collapsedOrientation]}, pos.Module);
+                return new SuperPosition<T>((int)Mathf.Pow(2, _collapsedOrientation), pos.Module); // HIER MUSS EINE BITMASKE UND KEIN INDEX REIN - BITMASKEN AB JETZT SUPERORIENTATIION (Methode => index zo maske)
+
+                //Debug.Log("pos.Molule is " + pos.Module.name + " / pos.Orientations is " + pos.Orientations + " / _collapsedOrientation is " + _collapsedOrientation + " / mask is " + mask + " / pos.Orientations & mask is " + masked);
             }
         }
 
@@ -144,7 +146,7 @@ namespace WaveFunctionCollapse
             {
                 if(Collapsed)
                 {
-                    return CollapsedPosition.RotatedContraints(0);
+                    return CollapsedPosition.FirstOrientedContraints;
                 }
                 else
                 {

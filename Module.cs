@@ -28,10 +28,10 @@ namespace WaveFunctionCollapse
         // Constraints
         public CellConstraintSet<T> Constraints { get => new CellConstraintSet<T>(_constraints); } // Constraint adjacent cells
         public virtual void UpdateConstraints(CellConstraint<T>[] constraints) => _constraints = constraints;
-        [SerializeField] private CellConstraint<T>[] _constraints;
+        [SerializeField] private CellConstraint<T>[] _constraints; // MAKE THIS A CONSTRAINT SET!!!!!
 
         
-        public abstract int[] Orientations { get; } // MAYBE MAKE THIS PART OF AN OVERALL HEX / QUAD / CUBE SETUP 
+        public abstract int Orientations { get; } // Bitmask // MAYBE MAKE THIS PART OF AN OVERALL HEX / QUAD / CUBE SETUP 
         public int AddRotations(int rotationA, int rotationB) => ((rotationA + rotationB) % Sides);
 
 
