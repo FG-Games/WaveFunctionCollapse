@@ -54,8 +54,8 @@ namespace WaveFunctionCollapse
 
         public void Collapse (int superPosIndex, int orientationIndex)
         {
-            _collapsedPosition = superPosIndex;
-            _collapsedOrientation = orientationIndex;
+            setCollapsedPosition(superPosIndex);
+            setCollapsedOrientation(orientationIndex);
             collapseSuperPosition();
         }
 
@@ -65,13 +65,12 @@ namespace WaveFunctionCollapse
             {
                 if(SuperPositions[i].Module.Index == moduleIndex)
                 {
-                    _collapsedPosition = i;
-                    _collapsedOrientation = random.Next(0, SuperPositions[_collapsedPosition].OrientationCount);
+                    setCollapsedPosition(i);
+                    setCollapsedOrientation(random.Next(0, SuperPositions[_collapsedPosition].Orientations.Count));
                     collapseSuperPosition();
                     return;
                 }
             }
-
             CollapseRandom(random);
         }
 
@@ -84,11 +83,11 @@ namespace WaveFunctionCollapse
                     _activeModules.Add(i);
 
             if(_activeModules.Count > 0)
-                _collapsedPosition = _activeModules[random.Next(0, _activeModules.Count)];
+                setCollapsedPosition(_activeModules[random.Next(0, _activeModules.Count)]);
             else
-                _collapsedPosition = random.Next(0, SuperPositions.Count);
+                setCollapsedPosition(random.Next(0, SuperPositions.Count));
 
-            _collapsedOrientation = random.Next(0, SuperPositions[_collapsedPosition].OrientationCount);
+            setCollapsedOrientation(random.Next(0, SuperPositions[_collapsedPosition].Orientations.Count));
             collapseSuperPosition();
         }
 
@@ -101,6 +100,9 @@ namespace WaveFunctionCollapse
             _collapse?.Invoke(CollapsedPosition);
         }
 
+        private void setCollapsedPosition(int index) => _collapsedPosition = index;
+        private void setCollapsedOrientation(int index) => _collapsedOrientation = SuperPositions[_collapsedPosition].Orientations[index];
+
         private void collapseSuperPosition()
         {
             _collapse?.Invoke(CollapsedPosition);
@@ -112,16 +114,14 @@ namespace WaveFunctionCollapse
             int entropy = 0;
 
             for (int i = 0; i < SuperPositions.Count; i ++)
-                entropy += SuperPositions[i].OrientationCount;
+                entropy += SuperPositions[i].Orientations.Count;
 
             return entropy;
         }
 
 
         // --- Collapsed Position --- //
-        
-        // public byte Orientation { get => SuperPositions[_collapsedPosition].Orientations[_collapsedOrientation]; }
-        // public Module<T> Module { get => SuperPositions[_collapsedPosition].Module; }
+
         public SuperPosition<T> CollapsedPosition
         {
             get
@@ -130,9 +130,8 @@ namespace WaveFunctionCollapse
                     Debug.LogError("These's no collapsed position at " + Cell.Address);
 
                 SuperPosition<T> pos = SuperPositions[_collapsedPosition];
-                return new SuperPosition<T>((int)Mathf.Pow(2, _collapsedOrientation), pos.Module); // HIER MUSS EINE BITMASKE UND KEIN INDEX REIN - BITMASKEN AB JETZT SUPERORIENTATIION (Methode => index zo maske)
-
-                //Debug.Log("pos.Molule is " + pos.Module.name + " / pos.Orientations is " + pos.Orientations + " / _collapsedOrientation is " + _collapsedOrientation + " / mask is " + mask + " / pos.Orientations & mask is " + masked);
+                SuperOrientation orientations = new SuperOrientation((int)Mathf.Pow(2, _collapsedOrientation));
+                return new SuperPosition<T>(orientations, pos.Module);
             }
         }
 
@@ -145,7 +144,7 @@ namespace WaveFunctionCollapse
             {
                 if(Collapsed)
                 {
-                    return CollapsedPosition.FirstOrientedContraints;
+                    return CollapsedPosition.RotatedContraints(0);
                 }
                 else
                 {
@@ -190,7 +189,7 @@ namespace WaveFunctionCollapse
     
             // Propagate effect
             _wfc.Add2EntropyHeap(this);
-            // ConstraintAdjacentCells(); // TEMPORARILY TURNED OFF
+            ConstraintAdjacentCells(); // TEMPORARILY TURNED OFF
         }
 
         public void ConstraintAdjacentCells()

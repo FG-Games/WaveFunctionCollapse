@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.Diagnostics;
+using UnityEngine;
 
 namespace WaveFunctionCollapse
 {
@@ -9,10 +9,10 @@ namespace WaveFunctionCollapse
     public struct SuperPosition<T>
         where T : Module<T>
     {
-        public int Orientations; // Bitmask
+        public SuperOrientation Orientations; // Bitmask
         public T Module;
 
-        public SuperPosition(int orientations, T module)
+        public SuperPosition(SuperOrientation orientations, T module)
         {
             Orientations = orientations;
             Module = module;
@@ -27,44 +27,6 @@ namespace WaveFunctionCollapse
 
         // --- Orientations --- //
 
-        public int GetFirstOrientation { get => (int)Math.Log(Orientations & -Orientations, 2); } // Get smallest rotation / the position of the lowest set bit
-
-        public int OrientationCount
-        {
-            get
-            {
-                int orientations = Orientations;
-                int count = 0;                
-
-                while (orientations > 0)
-                {
-                    orientations &= (orientations - 1); // Clear the lowest set bit
-                    count++;
-                }
-                return count;
-            }
-        }
-
-        public int GetOrientation(int index)
-        {
-            int orientations = Orientations;
-            int orientation = 0;
-            int count = 0;
-
-            while (orientations > 0)
-            {
-                orientation = (int)Math.Log(orientations & -orientations, 2);
-
-                if (count == index)
-                    return (int)orientation;
-
-                orientations &= (orientations - 1);
-                count ++;
-            }
-
-            throw new ArgumentOutOfRangeException(nameof(index), $"Index is {index}, but must be between 0 and {OrientationCount}. Orientations is {Orientations} / {Convert.ToString(Orientations, 2)}");
-        }
-
         public bool Union(SuperPosition<T> reference, out SuperPosition<T> union)
         {
             union = reference;
@@ -72,8 +34,7 @@ namespace WaveFunctionCollapse
             if(reference.Module != Module)
                 return false;
 
-            int unionOrientations = Orientations | reference.Orientations;
-            union = new SuperPosition<T>(Orientations | reference.Orientations, Module);
+            union = new SuperPosition<T>(Orientations.Union(reference.Orientations), Module);
             return true;
         }
 
@@ -84,42 +45,30 @@ namespace WaveFunctionCollapse
             if(reference.Module != Module)
                 return false;
 
-            int intersectingOrientations = Orientations & reference.Orientations;                
-            intersection = new SuperPosition<T>(intersectingOrientations, Module);
-            return intersectingOrientations > 0;
+            intersection = new SuperPosition<T>(Orientations.Intersection(reference.Orientations), Module);
+            return intersection.Orientations.Bitmask > 0;
         }
 
         public SuperPosition<T> Rotate(int rotation)
         {
-            int rotatedOrientations = ((Orientations << rotation) | (Orientations >> (6 - rotation))) & 0x3F;
-            return new SuperPosition<T> (rotatedOrientations, Module);
+            return new SuperPosition<T> (Orientations.Rotate(rotation), Module);
         }
 
 
         // --- Constraints --- //
 
-        public CellConstraintSet<T> FirstOrientedContraints { get => Module.Constraints * GetFirstOrientation; }
+        public CellConstraintSet<T> RotatedContraints(int i) => Module.Constraints * Orientations[i];
 
         public CellConstraintSet<T> SuperConstraints
         {
             get
             {
-                // Combine module constraints of all possible orientations                
-                CellConstraintSet<T> superConstraints = FirstOrientedContraints;
+                // Combine module constraints of all possible orientations
+                CellConstraintSet<T> superConstraints = RotatedContraints(0);
 
-                int rotation = 0;
-                int orientations = Orientations;
-                orientations &= (orientations - 1);
+                for (int i = 1; i < Orientations.Count; i ++)
+                    superConstraints += RotatedContraints(i);
 
-                while (orientations > 0)
-                {
-                    // Get smallest rotation / the position of the lowest set bit
-                    rotation = (int)Math.Log(orientations & -orientations, 2);
-                    superConstraints += Module.Constraints * rotation;
-
-                    // Clear the lowest set bit
-                    orientations &= (orientations - 1);
-                }
                 return superConstraints;
             }
         }

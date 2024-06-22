@@ -136,6 +136,7 @@ namespace WaveFunctionCollapse
 
             // Get the sub-properties of BaseTileNeighbour
             SerializedProperty orientationsProperty = property.FindPropertyRelative("Orientations");
+            SerializedProperty bitmaskProperty = orientationsProperty.FindPropertyRelative("_orientationBitmask");
             SerializedProperty constraintProperty = property.FindPropertyRelative("Module");
             SerializedObject moduleObject = new SerializedObject(constraintProperty.objectReferenceValue);
             SerializedProperty passiveProperty = moduleObject.FindProperty("Passive");
@@ -148,7 +149,7 @@ namespace WaveFunctionCollapse
 
             // Draw the neighbour's name and constraint values as a label
             string orientationsString = "";
-            int orientations = orientationsProperty.intValue;
+            int orientations = bitmaskProperty.intValue;
             int orientation = 0;
 
             while (orientations > 0)
