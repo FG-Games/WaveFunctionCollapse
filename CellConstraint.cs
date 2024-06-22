@@ -144,15 +144,14 @@ namespace WaveFunctionCollapse
             }
         }
 
-        private CellConstraintSet<T> merge(CellConstraintSet<T> additionalSet)
+        private CellConstraintSet<T> merge(CellConstraintSet<T> addition)
         {
             CellConstraintSet<T> addedSet = this;
 
-            // Combine constraints
-            for(int i = 1; i < Length; i++)
-                addedSet[i] += additionalSet[i];
+            for(int i = 0; i < Length; i++)
+                addedSet[i] += addition[i];
 
-            return additionalSet;
+            return addedSet;
         }
 
         private CellConstraintSet<T> rotate(int rotation)
@@ -168,6 +167,7 @@ namespace WaveFunctionCollapse
         private byte addRotations(int rotationA, int rotationB) => (byte)((rotationA + rotationB) % Length);
 
         public static CellConstraintSet<T> operator +(CellConstraintSet<T> obj1, CellConstraintSet<T> obj2) => obj1.merge(obj2);
+
         public static CellConstraintSet<T> operator *(CellConstraintSet<T> obj1, int i) => obj1.rotate(i);
     }
 }
