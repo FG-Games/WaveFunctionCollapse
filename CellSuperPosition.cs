@@ -19,7 +19,6 @@ namespace WaveFunctionCollapse
         private List<int> _activeModules; // PriorityModules
         private Cell<T, A>[] _adjacentCells;
         private CellSuperPosition<T, A> _adjacentCSP;
-        private CellConstraint<T>[] _constraints;
         private SuperPosition<T> _intersection;
 
 
@@ -140,7 +139,7 @@ namespace WaveFunctionCollapse
 
         // --- Constraints --- //
 
-        public CellConstraintSet<T> Constraints
+        public CellConstraintSet<T> CombinedConstraints
         {
             get
             {
@@ -191,7 +190,7 @@ namespace WaveFunctionCollapse
     
             // Propagate effect
             _wfc.Add2EntropyHeap(this);
-            ConstraintAdjacentCells();
+            // ConstraintAdjacentCells(); // TEMPORARILY TURNED OFF
         }
 
         public void ConstraintAdjacentCells()
@@ -204,8 +203,6 @@ namespace WaveFunctionCollapse
 
             if(_adjacentCells == null)
                 _adjacentCells = Cell.GetAdjacentCells();
-            
-            _constraints = Constraints.Set;
 
             for (byte side = 0; side < _adjacentCells.Length; side ++)
             {
@@ -213,7 +210,7 @@ namespace WaveFunctionCollapse
                     continue;
 
                 _adjacentCSP = _wfc.GetCellSuperPosition(_adjacentCells[side].Address);
-                _adjacentCSP.addConstraint(_constraints[side]);
+                _adjacentCSP.addConstraint(CombinedConstraints[side]);
             }
         }
 

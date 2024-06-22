@@ -97,47 +97,77 @@ namespace WaveFunctionCollapse
     }
 
     [Serializable]
-    public struct CellConstraintSet<T> // A set of constraints: one for each adjacent cell
+    public struct CellConstraintSet<T> // A set of constraints: one for each adjacent cell // HEX ONLY
         where T : Module<T>
     {
-        public CellConstraint<T>[] Set { get => _set; }
-        [SerializeField] private CellConstraint<T>[] _set;
+        public const int Length = 6;
 
-        public static CellConstraintSet<T> operator +(CellConstraintSet<T> obj1, CellConstraintSet<T> obj2) => obj1.merge(obj2);
-        public static CellConstraintSet<T> operator *(CellConstraintSet<T> obj1, int i) => obj1.rotate(i);
+        [SerializeField] private CellConstraint<T> _constraint0, _constraint1, _constraint2, _constraint3, _constraint4, _constraint5;
 
         public CellConstraintSet(CellConstraint<T>[] cellConstraints)
         {
-            /*if( cellConstraints.Length == 0 ||
-                cellConstraints.Length != cellConstraints[0].SuperPositions[0].Module.Sides) // HOLY CRAP THAT'S HACKY ... 
-            {
-                Debug.LogError("CellConstraintSet must be of size " + cellConstraints[0].SuperPositions[0].Module.Sides);
-            }*/
+            _constraint0 = cellConstraints[0];
+            _constraint1 = cellConstraints[1];
+            _constraint2 = cellConstraints[2];
+            _constraint3 = cellConstraints[3];
+            _constraint4 = cellConstraints[4];
+            _constraint5 = cellConstraints[5];
+        }
 
-            _set = cellConstraints;
+        public CellConstraint<T> this[int index]
+        {
+            get
+            {
+                return index switch
+                {
+                    0 => _constraint0, 
+                    1 => _constraint1,
+                    2 => _constraint2,
+                    3 => _constraint3,
+                    4 => _constraint4,
+                    5 => _constraint5,
+                    _ => throw new IndexOutOfRangeException("Index out of range")
+                };
+            }
+            set
+            {
+                switch (index)
+                {
+                    case 0: _constraint0 = value; break;
+                    case 1: _constraint1 = value; break;
+                    case 2: _constraint2 = value; break;
+                    case 3: _constraint3 = value; break;
+                    case 4: _constraint4 = value; break;
+                    case 5: _constraint5 = value; break;
+                    default: throw new IndexOutOfRangeException("Index out of range");
+                }
+            }
         }
 
         private CellConstraintSet<T> merge(CellConstraintSet<T> additionalSet)
         {
+            CellConstraintSet<T> addedSet = this;
+
             // Combine constraints
-            CellConstraint<T>[] set = _set.ToArray();
+            for(int i = 1; i < Length; i++)
+                addedSet[i] += additionalSet[i];
 
-            for (int i = 0; i < set.Length; i ++)
-                set[i] += additionalSet.Set[i];
-
-            return new CellConstraintSet<T>(set);
+            return additionalSet;
         }
 
         private CellConstraintSet<T> rotate(int rotation)
         {
-            CellConstraint<T>[] set = _set.ToArray();
+            CellConstraintSet<T> rotatedSet = this;
 
-            for (int i = 0; i < set.Length; i ++)
-                set[i] = _set[addRotations(rotation, i)] * rotation;
+            for (int i = 0; i < Length; i ++)
+                rotatedSet[i] = this[addRotations(rotation, i)] * rotation;
 
-            return new CellConstraintSet<T>(set);
+            return rotatedSet;
         }
 
-        private byte addRotations(int rotationA, int rotationB) => (byte)((rotationA + rotationB) % _set.Length); // HOLY CRAP THAT'S HACKY
+        private byte addRotations(int rotationA, int rotationB) => (byte)((rotationA + rotationB) % Length);
+
+        public static CellConstraintSet<T> operator +(CellConstraintSet<T> obj1, CellConstraintSet<T> obj2) => obj1.merge(obj2);
+        public static CellConstraintSet<T> operator *(CellConstraintSet<T> obj1, int i) => obj1.rotate(i);
     }
 }
