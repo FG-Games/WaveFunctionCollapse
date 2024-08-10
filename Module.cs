@@ -71,7 +71,7 @@ namespace WaveFunctionCollapse
 
         public virtual void UpdateAll()
         {
-            ModuleImporter<T>.UpdateModules(this);
+            ModuleImporter<T>.UpdateModules(this, new string("")); // Add file path to modules here
         }
 
         public virtual void Clear()

@@ -24,23 +24,23 @@ namespace WaveFunctionCollapse
 
         // --- Setup --- //
 
-        public CellSuperPosition(Cell<T, A> cell, CellFieldCollapse<T, A> wfc)
+        public CellSuperPosition(Cell<T, A> cell, CellFieldCollapse<T, A> wfc, string moduleFolderPath)
         {
             Cell = cell;
             _wfc = wfc;            
 
             // WFC Events
             _collapse += Cell.OnCollapse;
-            setSuperPosition();
+            setSuperPosition(moduleFolderPath);
         }
 
-        private void setSuperPosition()
+        private void setSuperPosition(string moduleFolderPath)
         {
             _collapsedPosition = -1;
             _collapsedOrientation = -1;
 
             // Load Modules
-            List<T> allModules = ModuleImporter<T>.GetAllModules();
+            List<T> allModules = ModuleImporter<T>.GetAllModules(moduleFolderPath);
             SuperPositions = new List<SuperPosition<T>>();
             
             for (int i = 0; i < allModules.Count; i ++)

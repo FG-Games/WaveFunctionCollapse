@@ -22,7 +22,7 @@ namespace WaveFunctionCollapse
 
         public virtual CellSuperPosition<T, A> CreateCSP(CellFieldCollapse<T, A> wfc)
         {
-            return new CellSuperPosition<T, A>(this, wfc);
+            return new CellSuperPosition<T, A>(this, wfc, new string("")); // Add file path to modules here
         }
 
         public abstract void OnCollapse(SuperPosition<T> collapsedPosition);

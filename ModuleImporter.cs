@@ -6,14 +6,14 @@ namespace WaveFunctionCollapse
     public static class ModuleImporter<T>
         where T : Module<T>
     {
-        public static void UpdateModules(Module<T> module)
+        public static void UpdateModules(Module<T> module, string moduleFolderPath)
         {
-            generateConstraints(module);
+            generateConstraints(module, moduleFolderPath);
         }
 
-        static void generateConstraints(Module<T> module)
+        static void generateConstraints(Module<T> module, string moduleFolderPath)
         {
-            List<T> allModules = GetAllModules();
+            List<T> allModules = GetAllModules(moduleFolderPath);
             List<SuperPosition<T>> states = new List<SuperPosition<T>>();
             SuperOrientation superOrientation;
 
@@ -102,7 +102,7 @@ namespace WaveFunctionCollapse
 
         // --- Get BaseTiles --- //
 
-        public static List<T> GetAllModules()
+        public static List<T> GetAllModules(string moduleFolderPath)
         {
             // Get the folder path where this BaseTile resides
             /*string folderPath = AssetDatabase.GetAssetPath(baseTile.GetInstanceID());
@@ -122,7 +122,5 @@ namespace WaveFunctionCollapse
 
             return modules;
         }
-
-        static string moduleFolderPath = "Assets/GameAssets/BaseTiles"; // UPDATE THIS!
     }
 }
