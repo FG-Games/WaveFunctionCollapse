@@ -18,7 +18,8 @@ namespace WaveFunctionCollapse
         [SerializeField] private int _collapsedOrientation = -1;
         private List<int> _activeModules; // PriorityModules
         private Cell<T, A>[] _adjacentCells;
-        private CellSuperPosition<T, A> _adjacentCSP;
+        private bool[] _adjacentEntropyChange;
+        private CellSuperPosition<T, A>[] _adjacentCSP;
         private SuperPosition<T> _intersection;
 
 
@@ -158,10 +159,13 @@ namespace WaveFunctionCollapse
             }
         }
         
-        private void addConstraint(CellConstraint<T> constraint)
+        private void addConstraint(CellConstraint<T> constraint, out bool entropyChange)
         {
             if(Collapsed)
+            {
+                entropyChange = false;
                 return;
+            }
 
             int previousEntropy = Entropy;
 
@@ -183,33 +187,42 @@ namespace WaveFunctionCollapse
                     Debug.LogError("No collapse possible at " + Cell.Address);
             }
 
-            // Check if constraint had effect on entropy
-            if(Entropy == previousEntropy)
-                return;
-    
-            // Propagate effect
-            _wfc.Add2EntropyHeap(this);
-            ConstraintAdjacentCells(); // TEMPORARILY TURNED OFF
+            entropyChange = Entropy != previousEntropy;            
         }
 
         public void ConstraintAdjacentCells()
         {
-            // The constraints of adjacent cells should ripple / iteratively through the map:
-            // If a collapsed cell enforces a coast tile next to it this will constraints it's neighbours
-            // Combine AdjacentSuperModule<T> of all SuperOrientedModule<T> and continue waves of constrainst
-            // the chain of constraints must only stop if the contraint doesn't have any effect on the cell
-            // You could just use this method, but use combined constraints in case _collapsedState == -1
+            // The constraints of adjacent cells recursively
 
             if(_adjacentCells == null)
+            {
                 _adjacentCells = Cell.GetAdjacentCells();
+                _adjacentEntropyChange = new bool[_adjacentCells.Length];
+                _adjacentCSP = new CellSuperPosition<T, A>[_adjacentCells.Length];
+            }
 
             for (byte side = 0; side < _adjacentCells.Length; side ++)
             {
-                if (_adjacentCells[side] == null)
-                    continue;
+                // Constraint adjacent cells and check for changes in entropy
+                if (_adjacentCells[side] != null)
+                {
+                    _adjacentCSP[side] = _wfc.GetCellSuperPosition(_adjacentCells[side].Address);
+                    _adjacentCSP[side].addConstraint(CombinedConstraints[side], out _adjacentEntropyChange[side]);
+                }
+                else
+                {
+                    _adjacentEntropyChange[side] = false;
+                }
+            }
 
-                _adjacentCSP = _wfc.GetCellSuperPosition(_adjacentCells[side].Address);
-                _adjacentCSP.addConstraint(CombinedConstraints[side]);
+            // Constraint adjacent cells of all adjacent cells, had a change in entropy
+            for (byte side = 0; side < _adjacentEntropyChange.Length; side ++)
+            {
+                if(_adjacentEntropyChange[side])
+                {
+                    _wfc.Add2EntropyHeap(_adjacentCSP[side]);
+                    _adjacentCSP[side].ConstraintAdjacentCells();
+                }
             }
         }
 
