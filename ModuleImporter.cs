@@ -6,23 +6,23 @@ namespace WaveFunctionCollapse
     public static class ModuleImporter<T>
         where T : Module<T>
     {
-        public static void UpdateModules(Module<T> module, string moduleFolderPath)
+        public static void UpdateModules(ModuleSet<T> set)
         {
-            generateConstraints(module, moduleFolderPath);
+            generateConstraints(set);
         }
 
-        static void generateConstraints(Module<T> module, string moduleFolderPath)
+        static void generateConstraints(ModuleSet<T> set)
         {
-            List<T> allModules = GetAllModules(moduleFolderPath);
+            T[] allModules = set.Modules;
             List<SuperPosition<T>> states = new List<SuperPosition<T>>();
             SuperOrientation superOrientation;
 
             // Make sure all Module's features are updated
-            for (int i = 0; i < allModules.Count; i ++)
+            for (int i = 0; i < allModules.Length; i ++)
                 allModules[i].SetFeatures();
 
             // Run through modules and test the features of each modules's side against the features of other modules sides
-            for (byte i = 0; i < allModules.Count; i ++)
+            for (byte i = 0; i < allModules.Length; i ++)
             {
                 allModules[i].Index = i;
 
@@ -46,7 +46,7 @@ namespace WaveFunctionCollapse
                 states = new List<SuperPosition<T>>();
 
                 // test other modules features against the feature, of the current side
-                for (int i = 0; i < allModules.Count; i ++)
+                for (int i = 0; i < allModules.Length; i ++)
                 {
                     // Exclude features
                     if((exclusionMask & allModules[i].FeatureFlags) != 0)
@@ -59,25 +59,6 @@ namespace WaveFunctionCollapse
 
             void evaluateAdjacentSideFeature(int side, T module, T adjacentModule)
             {
-                /*byte feature = module.Features[side]; 
-                orientations = new List<int>();
-
-                for (byte adjacentSide = 0; adjacentSide < adjacentModule.Sides; adjacentSide ++)
-                {
-                    if (feature == adjacentModule.FeaturesReflected[adjacentSide])
-                    {
-                        int adjacentOrientation = (adjacentSide - side) % adjacentModule.Sides;
-
-                        if(adjacentOrientation < 0)
-                            adjacentOrientation += adjacentModule.Sides;
-                            
-                        orientations.Add((byte)adjacentOrientation);
-                    }
-                }
-
-                if(orientations.Count > 0)
-                    states.Add(new SuperPosition<T>(orientations.ToArray(), adjacentModule));*/
-
                 byte feature = module.Features[side];
                 superOrientation = new SuperOrientation();
 
@@ -102,11 +83,11 @@ namespace WaveFunctionCollapse
 
         // --- Get BaseTiles --- //
 
-        public static List<T> GetAllModules(string moduleFolderPath)
+        /*static List<T> getAllModules(string moduleFolderPath)
         {
             // Get the folder path where this BaseTile resides
-            /*string folderPath = AssetDatabase.GetAssetPath(baseTile.GetInstanceID());
-            folderPath = folderPath.Substring(0, folderPath.LastIndexOf("/"));*/
+            string folderPath = AssetDatabase.GetAssetPath(baseTile.GetInstanceID());
+            folderPath = folderPath.Substring(0, folderPath.LastIndexOf("/"));
 
             // Load all BaseTile from that folder
             string[] guids = AssetDatabase.FindAssets("t:BaseTile", new[] { moduleFolderPath });
@@ -121,6 +102,6 @@ namespace WaveFunctionCollapse
             // Debug.Log(modules.Count + " Modules were found by the ModuleImporter.");
 
             return modules;
-        }
+        }*/
     }
 }

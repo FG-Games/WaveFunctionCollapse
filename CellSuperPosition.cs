@@ -16,6 +16,7 @@ namespace WaveFunctionCollapse
         private event Action<SuperPosition<T>> _collapse;
         [SerializeField] private int _collapsedPosition = -1;
         [SerializeField] private int _collapsedOrientation = -1;
+        private ModuleSet<T> _moduleSet;
         private List<int> _activeModules; // PriorityModules
         private Cell<T, A>[] _adjacentCells;
         private bool[] _adjacentEntropyChange;
@@ -25,26 +26,27 @@ namespace WaveFunctionCollapse
 
         // --- Setup --- //
 
-        public CellSuperPosition(Cell<T, A> cell, CellFieldCollapse<T, A> wfc, string moduleFolderPath)
+        public CellSuperPosition(Cell<T, A> cell, CellFieldCollapse<T, A> wfc, ModuleSet<T> moduleSet)
         {
             Cell = cell;
-            _wfc = wfc;            
+            _wfc = wfc;
+            _moduleSet = moduleSet;
 
             // WFC Events
             _collapse += Cell.OnCollapse;
-            setSuperPosition(moduleFolderPath);
+            setSuperPosition();
         }
 
-        private void setSuperPosition(string moduleFolderPath)
+        private void setSuperPosition()
         {
             _collapsedPosition = -1;
             _collapsedOrientation = -1;
 
             // Load Modules
-            List<T> allModules = ModuleImporter<T>.GetAllModules(moduleFolderPath);
+            T[] allModules = _moduleSet.Modules;
             SuperPositions = new List<SuperPosition<T>>();
             
-            for (int i = 0; i < allModules.Count; i ++)
+            for (int i = 0; i < allModules.Length; i ++)
                 SuperPositions.Add(new SuperPosition<T>(allModules[i]));
         }
 
