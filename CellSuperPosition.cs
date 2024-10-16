@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-using System.Diagnostics;
+using System.Diagnostics; // TMP
 
 namespace WaveFunctionCollapse
 {
@@ -19,14 +19,13 @@ namespace WaveFunctionCollapse
         [SerializeField] private int _collapsedPosition = -1;
         [SerializeField] private int _collapsedOrientation = -1;
         private ModuleSet<T> _moduleSet;
-        private List<int> _activeModules; // PriorityModules
         private Cell<T, A>[] _adjacentCells;
         private bool[] _adjacentEntropyChange;
         private CellSuperPosition<T, A>[] _adjacentCSP;
         private SuperPosition<T> _intersection;
 
 
-        private int _recursionCounter;
+        private int _recursionCounter; // TMP
 
 
         // --- Setup --- //
@@ -49,7 +48,7 @@ namespace WaveFunctionCollapse
 
             // Load Modules
             T[] allModules = _moduleSet.Modules;
-            SuperPositions = new List<SuperPosition<T>>();
+            SuperPositions = new List<SuperPosition<T>>(allModules.Length);
             
             for (int i = 0; i < allModules.Length; i ++)
                 SuperPositions.Add(new SuperPosition<T>(allModules[i]));
@@ -84,17 +83,7 @@ namespace WaveFunctionCollapse
 
         public void CollapseRandom(System.Random random)
         {
-            _activeModules = new List<int>();
-
-            for(int i = 0; i < SuperPositions.Count; i ++)
-                if(!SuperPositions[i].Module.Passive)
-                    _activeModules.Add(i);
-
-            if(_activeModules.Count > 0)
-                setCollapsedPosition(_activeModules[random.Next(0, _activeModules.Count)]);
-            else
-                setCollapsedPosition(random.Next(0, SuperPositions.Count));
-
+            setCollapsedPosition(random.Next(0, SuperPositions.Count));
             setCollapsedOrientation(random.Next(0, SuperPositions[_collapsedPosition].Orientations.Count));
             collapseSuperPosition();
         }

@@ -139,7 +139,6 @@ namespace WaveFunctionCollapse
             SerializedProperty bitmaskProperty = orientationsProperty.FindPropertyRelative("_orientationBitmask");
             SerializedProperty constraintProperty = property.FindPropertyRelative("Module");
             SerializedObject moduleObject = new SerializedObject(constraintProperty.objectReferenceValue);
-            SerializedProperty passiveProperty = moduleObject.FindProperty("Passive");
 
             // Calculate label width
             float labelWidth = EditorGUIUtility.labelWidth;
@@ -165,11 +164,7 @@ namespace WaveFunctionCollapse
                         orientationsString += ", ";
             }
 
-            // Create a new GUIStyle and set its text color to red
-            GUIStyle colorStyle = new GUIStyle(EditorStyles.label);
-            colorStyle.normal.textColor = passiveProperty.boolValue ? s_gray : Color.black;
-
-            EditorGUI.LabelField(position, constraintProperty.objectReferenceValue != null ? constraintProperty.objectReferenceValue.name + " [ " + orientationsString + " ]" : "None", colorStyle);
+            EditorGUI.LabelField(position, constraintProperty.objectReferenceValue != null ? constraintProperty.objectReferenceValue.name + " [ " + orientationsString + " ]" : "None");
             EditorGUI.EndProperty();
         }
     }

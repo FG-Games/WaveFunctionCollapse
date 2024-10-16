@@ -9,7 +9,6 @@ namespace WaveFunctionCollapse
         public byte Index;
 
         // Input
-        public bool Passive;
         public FeatureFlagMask FeatureFlagMask;
 
         // THERE SHOULD BE POSSIBILITY TO EXCLUDE "UNIQUE" TILES, 
