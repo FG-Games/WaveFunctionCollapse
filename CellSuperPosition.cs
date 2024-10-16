@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+using System.Diagnostics;
+
 namespace WaveFunctionCollapse
 {
     [Serializable]
@@ -22,6 +24,9 @@ namespace WaveFunctionCollapse
         private bool[] _adjacentEntropyChange;
         private CellSuperPosition<T, A>[] _adjacentCSP;
         private SuperPosition<T> _intersection;
+
+
+        private int _recursionCounter;
 
 
         // --- Setup --- //
@@ -109,7 +114,15 @@ namespace WaveFunctionCollapse
         private void collapseSuperPosition()
         {
             _collapse?.Invoke(CollapsedPosition);
+
+            _recursionCounter = 0;
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+
             ConstraintAdjacentCells();
+
+            stopwatch.Stop();
+            UnityEngine.Debug.Log("Time to collapse single CSP: " + stopwatch.ElapsedMilliseconds / 1000f + "s\n Constraint recursions" + _recursionCounter);
         }
 
         private int getEntropy()
@@ -130,7 +143,7 @@ namespace WaveFunctionCollapse
             get
             {
                 if ( _collapsedPosition == -1 || _collapsedOrientation == -1)
-                    Debug.LogError("These's no collapsed position at " + Cell.Address);
+                    UnityEngine.Debug.LogError("These's no collapsed position at " + Cell.Address);
 
                 SuperPosition<T> pos = SuperPositions[_collapsedPosition];
                 SuperOrientation orientations = new SuperOrientation((int)Mathf.Pow(2, _collapsedOrientation));
@@ -163,6 +176,8 @@ namespace WaveFunctionCollapse
         
         private void addConstraint(CellConstraint<T> constraint, out bool entropyChange)
         {
+            _recursionCounter ++;
+
             if(Collapsed)
             {
                 entropyChange = false;
@@ -186,7 +201,7 @@ namespace WaveFunctionCollapse
                 }
 
                 if(SuperPositions.Count == 0)
-                    Debug.LogError("No collapse possible at " + Cell.Address);
+                    UnityEngine.Debug.LogError("No collapse possible at " + Cell.Address);
             }
 
             entropyChange = Entropy != previousEntropy;            
