@@ -7,6 +7,11 @@ namespace WaveFunctionCollapse
         where T : Module<T>
     {
         public T[] Modules { get => _modules; }
-        [SerializeField] private T[] _modules;        
+        public T Module(SuperPosition<T> superPosition) => Modules[superPosition.ModuleIndex];
+        public SuperPosition<T> SuperPosition (int i) => new SuperPosition<T>(Modules[i].Orientations, Modules[i].Constraints, i);
+        [SerializeField] private T[] _modules;
+        
+
+        
     }
 }

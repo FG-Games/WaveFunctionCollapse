@@ -137,7 +137,7 @@ namespace WaveFunctionCollapse
             // Get the sub-properties of BaseTileNeighbour
             SerializedProperty orientationsProperty = property.FindPropertyRelative("Orientations");
             SerializedProperty bitmaskProperty = orientationsProperty.FindPropertyRelative("_orientationBitmask");
-            SerializedProperty constraintProperty = property.FindPropertyRelative("Module");
+            SerializedProperty constraintProperty = property.FindPropertyRelative("ModuleIndex");
             SerializedObject moduleObject = new SerializedObject(constraintProperty.objectReferenceValue);
 
             // Calculate label width

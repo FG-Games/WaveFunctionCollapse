@@ -72,8 +72,8 @@ namespace WaveFunctionCollapse
 
         public virtual void Clear()
         {
-            _features = new byte[0];            
-            _constraints = new CellConstraint<T>[0];
+            _features = new byte[0];
+            _constraints = new CellConstraint<T>[6];
             FeatureFlags = 0;
         }
     }

@@ -11,7 +11,7 @@ namespace WaveFunctionCollapse
         where T : Module<T>
     {
         public Cell<T, A> Cell;
-        public List<SuperPosition<T>> SuperPositions; // Multiple module options each in multiple orientations
+        public SuperPositions<T> SuperPositions; // Multiple module options each in multiple orientations // TRY THIS AS A NATIVE ARRAY
         public int Entropy { get => getEntropy(); }
         public bool Collapsed { get => _collapsedPosition != -1; }
         private CellFieldCollapse<T, A> _wfc;
@@ -47,11 +47,7 @@ namespace WaveFunctionCollapse
             _collapsedOrientation = -1;
 
             // Load Modules
-            T[] allModules = _moduleSet.Modules;
-            SuperPositions = new List<SuperPosition<T>>(allModules.Length);
-            
-            for (int i = 0; i < allModules.Length; i ++)
-                SuperPositions.Add(new SuperPosition<T>(allModules[i]));
+            SuperPositions = new SuperPositions<T>(_moduleSet);
         }
 
         public void SubscribeToCollapse(Action<SuperPosition<T>> action) => _collapse += action;
@@ -70,7 +66,7 @@ namespace WaveFunctionCollapse
         {
             for (int i = 0; i < SuperPositions.Count; i ++)
             {
-                if(SuperPositions[i].Module.Index == moduleIndex)
+                if(SuperPositions[i].ModuleIndex == moduleIndex)
                 {
                     setCollapsedPosition(i);
                     setCollapsedOrientation(random.Next(0, SuperPositions[_collapsedPosition].Orientations.Count));
@@ -109,6 +105,7 @@ namespace WaveFunctionCollapse
             stopwatch.Start();
 
             ConstraintAdjacentCells();
+            SuperPositions.Dispose();
 
             stopwatch.Stop();
             UnityEngine.Debug.Log("Time to collapse single CSP: " + stopwatch.ElapsedMilliseconds / 1000f + "s\n Constraint recursions" + _recursionCounter);
@@ -136,7 +133,7 @@ namespace WaveFunctionCollapse
 
                 SuperPosition<T> pos = SuperPositions[_collapsedPosition];
                 SuperOrientation orientations = new SuperOrientation((int)Mathf.Pow(2, _collapsedOrientation));
-                return new SuperPosition<T>(orientations, pos.Module);
+                return new SuperPosition<T>(orientations, pos);
             }
         }
 
@@ -185,7 +182,7 @@ namespace WaveFunctionCollapse
                 }
                 else
                 {
-                    SuperPositions.Remove(SuperPositions[i]);
+                    SuperPositions.Remove(i);
                     i--;                    
                 }
 
