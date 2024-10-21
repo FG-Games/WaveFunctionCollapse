@@ -20,8 +20,8 @@ namespace WaveFunctionCollapse
 
         // --- WFC Events --- //
 
-        public abstract CellSuperPosition<T, A> CreateCSP(CellFieldCollapse<T, A> wfc);
-        public abstract void OnCollapse(SuperPosition<T> collapsedPosition);
+        public abstract CellSuperPosition<T, A> CreateCSP(CellConstraint superPositions);
+        public abstract void OnCollapse(Vector2Int collapsedPosition);
         public abstract void OnDecohere();
     }
 
@@ -30,6 +30,7 @@ namespace WaveFunctionCollapse
         where T : Module<T>
     {
         public int Seed;
+        public ModuleSet<T> ModuleSet;
         public abstract Cell<T, A> GetCell(A address);
         public abstract Cell<T, A>[] GetAdjacentCells(A address);
         public abstract ICSPfield<T, A> CreateCellSuperPositions(CellFieldCollapse<T, A> wfc);

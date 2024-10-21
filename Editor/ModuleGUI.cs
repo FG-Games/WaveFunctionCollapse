@@ -79,10 +79,10 @@ namespace WaveFunctionCollapse
 
         public virtual void DrawSuperPositions(int i)
         {
-            SerializedProperty superPosition = _constraints.GetArrayElementAtIndex(i).FindPropertyRelative("SuperPositions");
+            SerializedProperty superModules = _constraints.GetArrayElementAtIndex(i).FindPropertyRelative("SuperModules");
             string hexSideFeature = _module.Features[i].ToString();
             
-            EditorGUILayout.PropertyField(superPosition, new GUIContent("Constraints for side " + i.ToString() + " | Feature: " + hexSideFeature));
+            EditorGUILayout.PropertyField(superModules, new GUIContent("Constraints for side " + i.ToString() + " | Feature: " + hexSideFeature));
         }
 
         public virtual void DrawUpdateButton(string label)
@@ -95,7 +95,7 @@ namespace WaveFunctionCollapse
         }
     }
 
-    public class CellConstraintSetDrawer : PropertyDrawer
+    /*public class CellConstraintSetDrawer : PropertyDrawer
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
@@ -124,12 +124,11 @@ namespace WaveFunctionCollapse
 
             EditorGUI.EndProperty();
         }
-    }
+    }*/
 
-    public class SuperPositionDrawer : PropertyDrawer
+    [CustomPropertyDrawer(typeof(SuperModule<>))]
+    public class SuperModuleDrawer : PropertyDrawer
     {
-        private static Color s_gray = new Color(0.4f, 0.4f, 0.4f, 1);
-
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             EditorGUI.BeginProperty(position, label, property);
@@ -137,8 +136,8 @@ namespace WaveFunctionCollapse
             // Get the sub-properties of BaseTileNeighbour
             SerializedProperty orientationsProperty = property.FindPropertyRelative("Orientations");
             SerializedProperty bitmaskProperty = orientationsProperty.FindPropertyRelative("_orientationBitmask");
-            SerializedProperty constraintProperty = property.FindPropertyRelative("ModuleIndex");
-            SerializedObject moduleObject = new SerializedObject(constraintProperty.objectReferenceValue);
+            SerializedProperty constraintProperty = property.FindPropertyRelative("Module");
+            //SerializedObject moduleObject = new SerializedObject(constraintProperty.objectReferenceValue);
 
             // Calculate label width
             float labelWidth = EditorGUIUtility.labelWidth;
@@ -164,7 +163,8 @@ namespace WaveFunctionCollapse
                         orientationsString += ", ";
             }
 
-            EditorGUI.LabelField(position, constraintProperty.objectReferenceValue != null ? constraintProperty.objectReferenceValue.name + " [ " + orientationsString + " ]" : "None");
+            // EditorGUI.LabelField(position, constraintProperty.objectReferenceValue != null ? constraintProperty.objectReferenceValue.name + " [ " + orientationsString + " ]" : "None");
+            EditorGUI.LabelField(position, constraintProperty.objectReferenceValue.name + " [ " + orientationsString + " ]");
             EditorGUI.EndProperty();
         }
     }
