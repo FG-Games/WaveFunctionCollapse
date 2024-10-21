@@ -66,6 +66,7 @@ namespace WaveFunctionCollapse
 
         public static bool operator == (SuperOrientation a, SuperOrientation b) => a._orientationBitmask == b._orientationBitmask;
         public static bool operator != (SuperOrientation a, SuperOrientation b) => a._orientationBitmask != b._orientationBitmask;
+
         public override bool Equals(object obj)
         {
             if (!(obj is SuperOrientation))
@@ -74,6 +75,7 @@ namespace WaveFunctionCollapse
             var other = (SuperOrientation)obj;
             return this == other;
         }
+
         public override int GetHashCode()
         {
             unchecked

@@ -1,110 +1,196 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Unity.Collections;
 
 namespace WaveFunctionCollapse
 {
     [Serializable]
-    public struct CellConstraint<T> // reduced the entropy of a CellSuperPosition / limits the possibible options of a cell  
-        where T : Module<T>
+    public struct CellConstraint
     {
-        public SuperPosition<T>[] SuperPositions; // limited range of permitted modules and their possible orientations
-
-        public CellConstraint(SuperPosition<T>[] superPositions) => SuperPositions = superPositions;
-
-        public bool Intersection(SuperPosition<T> reference, out SuperPosition<T> intersection)
+        public int Count => _superPositions.Length;
+        public int PossiblePositions
         {
-            intersection = reference;
+            get
+            {
+                int possiblePositions = 0;
 
-            for (int i = 0; i < SuperPositions.Length; i ++)
-                if(SuperPositions[i].Intersection(reference, out intersection))
-                    return true;
-
-            return false;
+                for (int i = 0; i < Count; i ++)
+                    if(_possiblePositions[i])
+                        possiblePositions ++;
+                    
+                return possiblePositions;
+            }
         }
 
-        private CellConstraint<T> merge(CellConstraint<T> constraint) // Merge Contraints 
+        public int Entropy
         {
-            List<SuperPosition<T>> combinedSuperPositions = SuperPositions.ToList();
-            SuperPosition<T> merdedPosition = new SuperPosition<T>();
-
-            for (int i = 0; i < constraint.SuperPositions.Length; i ++)
+            get
             {
-                bool containedInConstraint = false;
-                merdedPosition = new SuperPosition<T>();
+                SetEntropy();
+                return _entopy;
+            }
+        }
 
-                for (int j = 0; j < SuperPositions.Length; j ++)
+        [SerializeField] private int _entopy;
+        [SerializeField] private SuperPosition[] _superPositions;
+        [SerializeField] private bool[] _possiblePositions;
+        private SuperPosition _booleanSuperposition;
+
+        public CellConstraint(int setCount)
+        {
+            _entopy = 0;
+            _superPositions = new SuperPosition[setCount];
+            _possiblePositions = new bool[setCount];
+            _booleanSuperposition = new SuperPosition();
+        }
+
+        public void EnterSuperPosition(SuperPosition superPosition)
+        {
+            _superPositions[superPosition.ModuleIndex] = superPosition;
+            _possiblePositions[superPosition.ModuleIndex] = true;
+        }
+
+        public void SetEntropy()
+        {
+            _entopy = 0;
+
+            for (int i = 0; i < Count; i ++)
+                if(_possiblePositions[i])
+                    _entopy += this[i].Orientations.Count;
+        }
+
+        public SuperPosition this[int moduleIndex]
+        {
+            get
+            {
+                if (moduleIndex < 0 || moduleIndex >= Count)
+                    throw new IndexOutOfRangeException($"Index {moduleIndex} is out of range for the count {Count}.");
+
+                if(_possiblePositions[moduleIndex])
+                    return _superPositions[moduleIndex];
+                else
+                    throw new IndexOutOfRangeException($"Index {moduleIndex} is has no possible SuperPosition");
+            }
+            set
+            {
+                if (moduleIndex < 0 || moduleIndex >= Count)
+                    throw new IndexOutOfRangeException($"Index {moduleIndex} is out of range for the count {Count}.");
+
+                _superPositions[moduleIndex] = value;
+            }
+        }
+
+        public SuperPosition GetPossiblePosition(int index)
+        {
+            if (index < 0 || index >= PossiblePositions)
+                throw new IndexOutOfRangeException($"Index {index} is out of range for the amount of possible positions {PossiblePositions}.");
+
+            int counter = -1;
+
+            for (int i = 0; i < Count; i ++)
+            {
+                if(_possiblePositions[i])
                 {
-                    if(combinedSuperPositions[j].Union(constraint.SuperPositions[i], out merdedPosition))
-                    {
-                        combinedSuperPositions[j] = merdedPosition;
-                        containedInConstraint = true;
-                        break;
-                    }
-                }
+                    counter ++;
 
-                if(!containedInConstraint)
-                    combinedSuperPositions.Add(constraint.SuperPositions[i]);
+                    if(index == counter)
+                        return _superPositions[i];
+                }
             }
 
-            return new CellConstraint<T>(combinedSuperPositions.ToArray());
+            throw new IndexOutOfRangeException($"Index {index} is out of range for the amount of possible positions {PossiblePositions}.");
         }
 
-        private CellConstraint<T> rotate(int rotation) // Rotate or offset all orientations of SuperPositions 
+        public void Dispose()
         {
-            SuperPosition<T>[] offsetSuperPositions = new SuperPosition<T>[SuperPositions.Length];
+            Debug.Log("NEVER Disposed SuperPositions");
 
-            for (int i = 0; i < SuperPositions.Length; i ++)
-                offsetSuperPositions[i] = SuperPositions[i].Rotate(rotation);
-
-            return new CellConstraint<T>(offsetSuperPositions);
+            /*if (_superPositions.IsCreated)
+                _superPositions.Dispose();
+            if (_possiblePositions.IsCreated)
+                _possiblePositions.Dispose();*/
         }
-        
+
+
+        // --- Constraints --- //
+
+        public void Union (CellConstraint other)
+        {            
+            for (int i = 0; i < _superPositions.Length; i ++)
+            {
+                // Check possible SuperPositions and add them
+                if(_possiblePositions[i] || other._possiblePositions[i])
+                {
+                    if(_superPositions[i].Union(other._superPositions[i]))
+                    {
+                        _superPositions[i] = _booleanSuperposition;
+                        EnterSuperPosition(_superPositions[i]);
+                    }
+                }
+            }
+        }
+
+        public void Intersection (CellConstraint other)
+        {
+            for (int i = 0; i < _superPositions.Length; i ++)
+            {
+                // Check common possible SuperPositions and intersect them 
+                if(_possiblePositions[i] && other._possiblePositions[i])
+                {
+                    if(!_superPositions[i].Intersection(other._superPositions[i]))
+                        _possiblePositions[i] = false;
+                }
+                else
+                {
+                    _possiblePositions[i] = false;
+                }
+            }
+
+            if(PossiblePositions == 0)
+                Debug.LogError("No collapse possible");
+        }
+
+        private CellConstraint add(CellConstraint addedConstraint) 
+        {
+            addedConstraint.Union(this);
+            return addedConstraint;
+        }
+
+        private CellConstraint rotate(int rotation) 
+        {
+            CellConstraint rotated = this;
+
+            for (int i = 0; i < Count; i ++)
+                rotated._superPositions[i].Rotate(rotation);
+
+            return rotated;
+        }
+
 
         // --- Operators --- //
 
-        public static CellConstraint<T> operator + (CellConstraint<T> a, CellConstraint<T> b) => a.merge(b);
+        public static CellConstraint operator + (CellConstraint a, CellConstraint b) => a.add(b);
 
-        public static CellConstraint<T> operator * (CellConstraint<T> a, int i) => a.rotate(i);
+        public static CellConstraint operator * (CellConstraint a, int i) => a.rotate(i);
 
-        public static bool operator == (CellConstraint<T> a, CellConstraint<T> b) =>  a.SuperPositions.SequenceEqual(b.SuperPositions);
-
-        public static bool operator != (CellConstraint<T> a, CellConstraint<T> b) => !a.SuperPositions.SequenceEqual(b.SuperPositions);
-
-        public override bool Equals(object obj)
+        /*public bool TestForMismatch(string prefix)
         {
-            if (!(obj is CellConstraint<T>))
-                return false;
-
-            var other = (CellConstraint<T>)obj;
-            return this == other;
-        }
-
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                int hash = 17;
-
-                if (SuperPositions != null)
-                    for (int i = 1; i < SuperPositions.Length; i ++)
-                        hash = hash * 31 + SuperPositions[i].GetHashCode();
-
-                return hash;
-            }
-        }
+            bool result = _count != _possiblePositions.Count(p => p);
+            Debug.Assert(!result, prefix + $"Mismatch between _count ({_count}) and actual possible positions({_possiblePositions.Count(p => p)})!");
+            return result;
+        }*/
     }
 
+
     [Serializable]
-    public struct CellConstraintSet<T> // A set of constraints: one for each adjacent cell // HEX ONLY
-        where T : Module<T>
+    public struct CellConstraintSet // A set of constraints: one for each adjacent cell // HEX ONLY
     {
         public const int Length = 6;
 
-        [SerializeField] private CellConstraint<T> _constraint0, _constraint1, _constraint2, _constraint3, _constraint4, _constraint5;
+        [SerializeField] private CellConstraint _constraint0, _constraint1, _constraint2, _constraint3, _constraint4, _constraint5;
 
-        public CellConstraintSet(CellConstraint<T>[] cellConstraints)
+        public CellConstraintSet(CellConstraint[] cellConstraints)
         {
             _constraint0 = cellConstraints[0];
             _constraint1 = cellConstraints[1];
@@ -114,7 +200,7 @@ namespace WaveFunctionCollapse
             _constraint5 = cellConstraints[5];
         }
 
-        public CellConstraint<T> this[int index]
+        public CellConstraint this[int index]
         {
             get
             {
@@ -144,9 +230,9 @@ namespace WaveFunctionCollapse
             }
         }
 
-        private CellConstraintSet<T> merge(CellConstraintSet<T> addition)
+        private CellConstraintSet merge(CellConstraintSet addition)
         {
-            CellConstraintSet<T> addedSet = this;
+            CellConstraintSet addedSet = this;
 
             for(int i = 0; i < Length; i++)
                 addedSet[i] += addition[i];
@@ -154,9 +240,9 @@ namespace WaveFunctionCollapse
             return addedSet;
         }
 
-        private CellConstraintSet<T> rotate(int rotation)
+        private CellConstraintSet rotate(int rotation)
         {
-            CellConstraintSet<T> rotatedSet = this;
+            CellConstraintSet rotatedSet = this;
 
             for (int i = 0; i < Length; i ++)
                 rotatedSet[i] = this[addRotations(rotation, i)] * rotation;
@@ -166,8 +252,48 @@ namespace WaveFunctionCollapse
 
         private byte addRotations(int rotationA, int rotationB) => (byte)((rotationA + rotationB) % Length);
 
-        public static CellConstraintSet<T> operator +(CellConstraintSet<T> obj1, CellConstraintSet<T> obj2) => obj1.merge(obj2);
+        public static CellConstraintSet operator + (CellConstraintSet obj1, CellConstraintSet obj2) => obj1.merge(obj2);
 
-        public static CellConstraintSet<T> operator *(CellConstraintSet<T> obj1, int i) => obj1.rotate(i);
+        public static CellConstraintSet operator * (CellConstraintSet obj1, int i) => obj1.rotate(i);
+    }
+
+    public static class CreateUnmanaged<T>
+        where T : Module<T>
+    {
+        // What the hell is this? 
+        // The constructor of SuperPositions can't be generic, as Module<T> will be
+        // a managed type and won't be used in a NativeArray. 
+
+        public static CellConstraint CellConstraint(SuperModule<T>[] superModules, int setCount)
+        {
+            CellConstraint superPositions = new CellConstraint(setCount);
+
+            for (int i = 0; i < superModules.Length; i ++)
+                superPositions.EnterSuperPosition(superModules[i].GetSuperPosition());
+
+            superPositions.SetEntropy();
+            return superPositions;
+        }
+
+        public static CellConstraint CellConstraint(ModuleSet<T> moduleSet)
+        {
+            CellConstraint superPositions = new CellConstraint(moduleSet.Modules.Length);
+
+            for (int i = 0; i < moduleSet.Modules.Length; i ++)
+                superPositions.EnterSuperPosition(moduleSet.SuperPosition(i));
+
+            superPositions.SetEntropy();
+            return superPositions;
+        }
+
+        public static CellConstraintSet CellConstraintSet(SuperModuleArray<T>[] superModuleArraySet)
+        {
+            CellConstraint[] constraints = new CellConstraint[superModuleArraySet.Length];
+
+            for (int i = 0; i < superModuleArraySet.Length; i ++)
+                constraints[i] = superModuleArraySet[i].GetSuperPositions();
+
+            return new CellConstraintSet(constraints);
+        }
     }
 }
