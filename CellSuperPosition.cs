@@ -1,8 +1,5 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
-
-using System.Diagnostics; // TMP
 
 namespace WaveFunctionCollapse
 {
@@ -10,222 +7,88 @@ namespace WaveFunctionCollapse
     public class CellSuperPosition<T, A> : IHeapItem<CellSuperPosition<T, A>>
         where T : Module<T>
     {
-        public Cell<T, A> Cell;
-        public SuperPositions<T> SuperPositions; // Multiple module options each in multiple orientations // TRY THIS AS A NATIVE ARRAY
-        public int Entropy { get => getEntropy(); }
+        //public Cell<T, A> Cell;
+        public CellConstraint SuperPositions; // Multiple module options each in multiple orientations // TRY THIS AS A NATIVE ARRAY
+        public A Address { get => _address; }
+        public int Entropy { get => SuperPositions.Entropy; }
+        public int CollapsedPosition { get => _collapsedPosition; }
+        public int CollapsedOrientation { get => _collapsedOrientation; }
         public bool Collapsed { get => _collapsedPosition != -1; }
-        private CellFieldCollapse<T, A> _wfc;
-        private event Action<SuperPosition<T>> _collapse;
-        [SerializeField] private int _collapsedPosition = -1;
-        [SerializeField] private int _collapsedOrientation = -1;
-        private ModuleSet<T> _moduleSet;
-        private Cell<T, A>[] _adjacentCells;
-        private bool[] _adjacentEntropyChange;
-        private CellSuperPosition<T, A>[] _adjacentCSP;
-        private SuperPosition<T> _intersection;
-
-
-        private int _recursionCounter; // TMP
+        [SerializeField] private A _address;        
+        [SerializeField] private int _collapsedPosition;
+        [SerializeField] private int _collapsedOrientation;
+        private event Action<Vector2Int> _collapse;        
 
 
         // --- Setup --- //
 
-        public CellSuperPosition(Cell<T, A> cell, CellFieldCollapse<T, A> wfc, ModuleSet<T> moduleSet)
-        {
-            Cell = cell;
-            _wfc = wfc;
-            _moduleSet = moduleSet;
+        public CellSuperPosition(Cell<T, A> cell, CellConstraint superPositions)
+        {         
+            SuperPositions = superPositions;            
+            _address = cell.Address;
 
             // WFC Events
-            _collapse += Cell.OnCollapse;
-            setSuperPosition();
-        }
-
-        private void setSuperPosition()
-        {
+            _heapIndex = -1;
             _collapsedPosition = -1;
             _collapsedOrientation = -1;
-
-            // Load Modules
-            SuperPositions = new SuperPositions<T>(_moduleSet);
+            _collapse = delegate { };
+            _collapse += cell.OnCollapse;            
         }
 
-        public void SubscribeToCollapse(Action<SuperPosition<T>> action) => _collapse += action;
+        public void SubscribeToCollapse(Action<Vector2Int> action) => _collapse += action;
+
+
+        // --- Constraints --- //
+
+        public void AddConstraint(CellConstraint constraint, out bool  entropyChange, ICSPfield<T, A> DEBUGFIELD)
+        {
+            int previousEntropy = Entropy;
+            SuperPositions.Intersection(constraint);
+            entropyChange = previousEntropy != Entropy;
+        }
 
 
         // --- Collapse --- //
 
-        public void Collapse (int superPosIndex, int orientationIndex)
+        public void Collapse (int moduleIndex, int orientationIndex)
         {
-            setCollapsedPosition(superPosIndex);
-            setCollapsedOrientation(orientationIndex);
-            collapseSuperPosition();
-        }
+            _collapsedPosition = moduleIndex;
+            _collapsedOrientation = orientationIndex;
+            _collapse?.Invoke(DefinedRotatedModule);
+        }        
 
+        public void CollapseRandom(System.Random random)
+        {
+            int moduleIndex = random.Next(0, SuperPositions.Count);
+            int orientationIndex = random.Next(0, SuperPositions[_collapsedPosition].Orientations.Count);
+            Collapse(moduleIndex, orientationIndex);
+        }
+        
         public void CollapseToModule (int moduleIndex, System.Random random)
         {
             for (int i = 0; i < SuperPositions.Count; i ++)
             {
                 if(SuperPositions[i].ModuleIndex == moduleIndex)
                 {
-                    setCollapsedPosition(i);
-                    setCollapsedOrientation(random.Next(0, SuperPositions[_collapsedPosition].Orientations.Count));
-                    collapseSuperPosition();
+                    int orientation = random.Next(0, SuperPositions[i].Orientations.Count);
+                    Collapse(i, orientation);
                     return;
                 }
             }
             CollapseRandom(random);
         }
 
-        public void CollapseRandom(System.Random random)
-        {
-            setCollapsedPosition(random.Next(0, SuperPositions.Count));
-            setCollapsedOrientation(random.Next(0, SuperPositions[_collapsedPosition].Orientations.Count));
-            collapseSuperPosition();
-        }
-
-        public void SetModule (int moduleIndex, int orientationIndex)
-        {
-            // This method assumes the CSP doesn't have any constraints and the sequence
-            // of all orientations and modules is therefore identical with their array positions 
-            _collapsedPosition = moduleIndex;
-            _collapsedOrientation = orientationIndex;
-            _collapse?.Invoke(CollapsedPosition);
-        }
-
-        private void setCollapsedPosition(int index) => _collapsedPosition = index;
-        private void setCollapsedOrientation(int index) => _collapsedOrientation = SuperPositions[_collapsedPosition].Orientations[index];
-
-        private void collapseSuperPosition()
-        {
-            _collapse?.Invoke(CollapsedPosition);
-
-            _recursionCounter = 0;
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
-
-            ConstraintAdjacentCells();
-            SuperPositions.Dispose();
-
-            stopwatch.Stop();
-            UnityEngine.Debug.Log("Time to collapse single CSP: " + stopwatch.ElapsedMilliseconds / 1000f + "s\n Constraint recursions" + _recursionCounter);
-        }
-
-        private int getEntropy()
-        {
-            int entropy = 0;
-
-            for (int i = 0; i < SuperPositions.Count; i ++)
-                entropy += SuperPositions[i].Orientations.Count;
-
-            return entropy;
-        }
-
 
         // --- Collapsed Position --- //
 
-        public SuperPosition<T> CollapsedPosition
+        public Vector2Int DefinedRotatedModule
         {
             get
             {
                 if ( _collapsedPosition == -1 || _collapsedOrientation == -1)
-                    UnityEngine.Debug.LogError("These's no collapsed position at " + Cell.Address);
+                    UnityEngine.Debug.LogError("These's no collapsed position at " + _address);
 
-                SuperPosition<T> pos = SuperPositions[_collapsedPosition];
-                SuperOrientation orientations = new SuperOrientation((int)Mathf.Pow(2, _collapsedOrientation));
-                return new SuperPosition<T>(orientations, pos);
-            }
-        }
-
-
-        // --- Constraints --- //
-
-        public CellConstraintSet<T> CombinedConstraints
-        {
-            get
-            {
-                if(Collapsed)
-                {
-                    return CollapsedPosition.RotatedContraints(0);
-                }
-                else
-                {
-                    CellConstraintSet<T> combinedConstraints = SuperPositions[0].SuperConstraints;
-
-                    for (int i = 1; i < SuperPositions.Count; i++)
-                        combinedConstraints += SuperPositions[i].SuperConstraints;
-
-                    return combinedConstraints;
-                }
-            }
-        }
-        
-        private void addConstraint(CellConstraint<T> constraint, out bool entropyChange)
-        {
-            _recursionCounter ++;
-
-            if(Collapsed)
-            {
-                entropyChange = false;
-                return;
-            }
-
-            int previousEntropy = Entropy;
-
-            // Go through SuperPosition and check for common States / intersections
-            for (int i = 0; i < SuperPositions.Count; i ++)
-            {
-                // Test SuperPosition against SuperPositions in Constraint
-                if(constraint.Intersection(SuperPositions[i], out _intersection))
-                {
-                    SuperPositions[i] = _intersection;
-                }
-                else
-                {
-                    SuperPositions.Remove(i);
-                    i--;                    
-                }
-
-                if(SuperPositions.Count == 0)
-                    UnityEngine.Debug.LogError("No collapse possible at " + Cell.Address);
-            }
-
-            entropyChange = Entropy != previousEntropy;            
-        }
-
-        public void ConstraintAdjacentCells()
-        {
-            // The constraints of adjacent cells recursively
-
-            if(_adjacentCells == null)
-            {
-                _adjacentCells = Cell.GetAdjacentCells();
-                _adjacentEntropyChange = new bool[_adjacentCells.Length];
-                _adjacentCSP = new CellSuperPosition<T, A>[_adjacentCells.Length];
-            }
-
-            for (byte side = 0; side < _adjacentCells.Length; side ++)
-            {
-                // Constraint adjacent cells and check for changes in entropy
-                if (_adjacentCells[side] != null)
-                {
-                    _adjacentCSP[side] = _wfc.GetCellSuperPosition(_adjacentCells[side].Address);
-                    _adjacentCSP[side].addConstraint(CombinedConstraints[side], out _adjacentEntropyChange[side]);
-                }
-                else
-                {
-                    _adjacentEntropyChange[side] = false;
-                }
-            }
-
-            // Constraint adjacent cells of all adjacent cells, had a change in entropy
-            for (byte side = 0; side < _adjacentEntropyChange.Length; side ++)
-            {
-                if(_adjacentEntropyChange[side])
-                {
-                    _wfc.Add2EntropyHeap(_adjacentCSP[side]);
-                    _adjacentCSP[side].ConstraintAdjacentCells();
-                }
+                return new Vector2Int(_collapsedPosition, _collapsedOrientation);
             }
         }
 
@@ -245,6 +108,21 @@ namespace WaveFunctionCollapse
         where T : Module<T>
     {
         int Count { get; }
-        CellSuperPosition<T, A> GetCellSuperPosition(A a);
+        CellSuperPosition<T, A> GetCSP(A a);
+        IAdjacentType<A> AdjacentCSPaddresses(A a);
+        void LoopThroughCells(Action<A> action);
+
+        void CollapseAt(A a, int moduleIndex, int orientationIndex);
+        void CollapseRandomAt(A a, System.Random random);
+        void CollapseToModuleAt(A a, int moduleIndex, System.Random random);
+        bool Collapsed(A a);
+    }
+
+    public interface IAdjacentType<T>
+    {
+        int Count { get; }
+        bool isValid(int i);
+        T get(int i);
+        void set(int i, T value);
     }
 }
