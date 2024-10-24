@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-using System.Diagnostics; // TMP
-
 namespace WaveFunctionCollapse
 {
     [Serializable]
@@ -105,13 +103,7 @@ namespace WaveFunctionCollapse
             _collapse?.Invoke(CollapsedPosition);
 
             _recursionCounter = 0;
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
-
             ConstraintAdjacentCells();
-
-            stopwatch.Stop();
-            UnityEngine.Debug.Log("Time to collapse single CSP: " + stopwatch.ElapsedMilliseconds / 1000f + "s\n Constraint recursions" + _recursionCounter);
         }
 
         private int getEntropy()
