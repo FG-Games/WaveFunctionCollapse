@@ -15,7 +15,7 @@ namespace WaveFunctionCollapse
 
         // --- Cell Field --- //
 
-        public Cell<T, A>[] GetAdjacentCells() => CellField.GetAdjacentCells(Address);
+        public IAdjacentCell<Cell<T, A>> GetAdjacentCells() => CellField.GetAdjacentCells(Address);
 
 
         // --- WFC Events --- //
@@ -31,7 +31,7 @@ namespace WaveFunctionCollapse
     {
         int Seed { get;}
         Cell<T, A> GetCell(A address);
-        Cell<T, A>[] GetAdjacentCells(A address);
+        IAdjacentCell<Cell<T, A>> GetAdjacentCells(A address);
         ICSPfield<T, A> CreateCellSuperPositions(CellFieldCollapse<T, A> wfc);
     }
 }

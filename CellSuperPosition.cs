@@ -17,7 +17,7 @@ namespace WaveFunctionCollapse
         [SerializeField] private int _collapsedPosition = -1;
         [SerializeField] private int _collapsedOrientation = -1;
         private ModuleSet<T> _moduleSet;
-        private Cell<T, A>[] _adjacentCells;
+        private IAdjacentCell<Cell<T, A>> _adjacentCells;
         private bool[] _adjacentEntropyChange;
         private CellSuperPosition<T, A>[] _adjacentCSP;
         private SuperPosition<T> _intersection;
@@ -202,9 +202,9 @@ namespace WaveFunctionCollapse
             for (byte side = 0; side < _adjacentCells.Length; side ++)
             {
                 // Constraint adjacent cells and check for changes in entropy
-                if (_adjacentCells[side] != null)
+                if (_adjacentCells.IsValid(side))
                 {
-                    _adjacentCSP[side] = _wfc.GetCellSuperPosition(_adjacentCells[side].Address);
+                    _adjacentCSP[side] = _wfc.GetCellSuperPosition(_adjacentCells.GetCell(side).Address);
                     _adjacentCSP[side].addConstraint(CombinedConstraints[side], out _adjacentEntropyChange[side]);
                 }
                 else
@@ -241,5 +241,13 @@ namespace WaveFunctionCollapse
     {
         int Count { get; }
         CellSuperPosition<T, A> GetCellSuperPosition(A a);
+    }
+
+    public interface IAdjacentCell<T>
+    {
+        int Length { get; }
+        bool IsValid(int i);
+        T GetCell(int i);
+        void SetCell(int i, T value);
     }
 }
