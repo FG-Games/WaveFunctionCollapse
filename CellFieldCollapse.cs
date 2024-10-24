@@ -10,7 +10,7 @@ namespace WaveFunctionCollapse
         private Heap<CellSuperPosition<T, A>> _entropyHeap;
         private System.Random _random;
 
-        public CellFieldCollapse(CellField<T, A> cellField)
+        public CellFieldCollapse(ICellField<T, A> cellField)
         {
             _cspField = cellField.CreateCellSuperPositions(this);
             _entropyHeap = new Heap<CellSuperPosition<T, A>>(_cspField.Count);

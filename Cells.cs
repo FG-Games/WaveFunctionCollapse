@@ -10,7 +10,7 @@ namespace WaveFunctionCollapse
         public A Address;
         public abstract Module<T> Module { get; }
         public abstract int ModuleOrientation { get; } 
-        public abstract CellField<T, A> CellField { get; }
+        public abstract ICellField<T, A> CellField { get; }
 
 
         // --- Cell Field --- //
@@ -25,13 +25,13 @@ namespace WaveFunctionCollapse
         public abstract void OnDecohere();
     }
 
-    [Serializable]
-    public abstract class CellField<T, A>
+
+    public interface ICellField<T, A>
         where T : Module<T>
     {
-        public int Seed;
-        public abstract Cell<T, A> GetCell(A address);
-        public abstract Cell<T, A>[] GetAdjacentCells(A address);
-        public abstract ICSPfield<T, A> CreateCellSuperPositions(CellFieldCollapse<T, A> wfc);
+        int Seed { get;}
+        Cell<T, A> GetCell(A address);
+        Cell<T, A>[] GetAdjacentCells(A address);
+        ICSPfield<T, A> CreateCellSuperPositions(CellFieldCollapse<T, A> wfc);
     }
 }
