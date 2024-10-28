@@ -25,9 +25,21 @@ namespace WaveFunctionCollapse
         [SerializeField] protected byte[] _featuresReflected;
 
         // Constraints
-        public CellConstraintSet<T> Constraints { get => new CellConstraintSet<T>(_constraints); } // Constraint adjacent cells
-        public virtual void UpdateConstraints(CellConstraint<T>[] constraints) => _constraints = constraints;
-        [SerializeField] private CellConstraint<T>[] _constraints; // MAKE THIS A CONSTRAINT SET!!!!!
+        public CellConstraintSet Constraints
+        { 
+            get
+            {
+                CellConstraint[] constraints = new CellConstraint[_constraints.Length];
+
+                for(int i = 0; i < constraints.Length; i++)
+                    constraints[i] = _constraints[i].GetCellConstraint();
+
+                return new CellConstraintSet(constraints);
+            }
+        }
+        
+        public virtual void UpdateConstraints(SuperModuleArray<T>[] constraints) => _constraints = constraints;
+        [SerializeField] private SuperModuleArray<T>[] _constraints; // MAKE THIS A CONSTRAINT SET!!!!!
 
         
         public abstract SuperOrientation Orientations { get; } // Bitmask // MAYBE MAKE THIS PART OF AN OVERALL HEX / QUAD / CUBE SETUP 
@@ -72,7 +84,7 @@ namespace WaveFunctionCollapse
         public virtual void Clear()
         {
             _features = new byte[0];            
-            _constraints = new CellConstraint<T>[0];
+            _constraints = new SuperModuleArray<T>[0];
             FeatureFlags = 0;
         }
     }

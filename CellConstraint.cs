@@ -6,14 +6,13 @@ using UnityEngine;
 namespace WaveFunctionCollapse
 {
     [Serializable]
-    public struct CellConstraint<T> // reduced the entropy of a CellSuperPosition / limits the possibible options of a cell  
-        where T : Module<T>
+    public struct CellConstraint
     {
-        public SuperPosition<T>[] SuperPositions; // limited range of permitted modules and their possible orientations
+        public SuperPosition[] SuperPositions; // limited range of permitted modules and their possible orientations
 
-        public CellConstraint(SuperPosition<T>[] superPositions) => SuperPositions = superPositions;
+        public CellConstraint(SuperPosition[] superPositions) => SuperPositions = superPositions;
 
-        public bool Intersection(SuperPosition<T> reference, out SuperPosition<T> intersection)
+        public bool Intersection(SuperPosition reference, out SuperPosition intersection)
         {
             intersection = reference;
 
@@ -24,15 +23,15 @@ namespace WaveFunctionCollapse
             return false;
         }
 
-        private CellConstraint<T> merge(CellConstraint<T> constraint) // Merge Contraints 
+        private CellConstraint merge(CellConstraint constraint) // Merge Contraints 
         {
-            List<SuperPosition<T>> combinedSuperPositions = SuperPositions.ToList();
-            SuperPosition<T> merdedPosition = new SuperPosition<T>();
+            List<SuperPosition> combinedSuperPositions = SuperPositions.ToList();
+            SuperPosition merdedPosition = new SuperPosition();
 
             for (int i = 0; i < constraint.SuperPositions.Length; i ++)
             {
                 bool containedInConstraint = false;
-                merdedPosition = new SuperPosition<T>();
+                merdedPosition = new SuperPosition();
 
                 for (int j = 0; j < SuperPositions.Length; j ++)
                 {
@@ -48,36 +47,36 @@ namespace WaveFunctionCollapse
                     combinedSuperPositions.Add(constraint.SuperPositions[i]);
             }
 
-            return new CellConstraint<T>(combinedSuperPositions.ToArray());
+            return new CellConstraint(combinedSuperPositions.ToArray());
         }
 
-        private CellConstraint<T> rotate(int rotation) // Rotate or offset all orientations of SuperPositions 
+        private CellConstraint rotate(int rotation) // Rotate or offset all orientations of SuperPositions 
         {
-            SuperPosition<T>[] offsetSuperPositions = new SuperPosition<T>[SuperPositions.Length];
+            SuperPosition[] offsetSuperPositions = new SuperPosition[SuperPositions.Length];
 
             for (int i = 0; i < SuperPositions.Length; i ++)
                 offsetSuperPositions[i] = SuperPositions[i].Rotate(rotation);
 
-            return new CellConstraint<T>(offsetSuperPositions);
+            return new CellConstraint(offsetSuperPositions);
         }
         
 
         // --- Operators --- //
 
-        public static CellConstraint<T> operator + (CellConstraint<T> a, CellConstraint<T> b) => a.merge(b);
+        public static CellConstraint operator + (CellConstraint a, CellConstraint b) => a.merge(b);
 
-        public static CellConstraint<T> operator * (CellConstraint<T> a, int i) => a.rotate(i);
+        public static CellConstraint operator * (CellConstraint a, int i) => a.rotate(i);
 
-        public static bool operator == (CellConstraint<T> a, CellConstraint<T> b) =>  a.SuperPositions.SequenceEqual(b.SuperPositions);
+        public static bool operator == (CellConstraint a, CellConstraint b) =>  a.SuperPositions.SequenceEqual(b.SuperPositions);
 
-        public static bool operator != (CellConstraint<T> a, CellConstraint<T> b) => !a.SuperPositions.SequenceEqual(b.SuperPositions);
+        public static bool operator != (CellConstraint a, CellConstraint b) => !a.SuperPositions.SequenceEqual(b.SuperPositions);
 
         public override bool Equals(object obj)
         {
-            if (!(obj is CellConstraint<T>))
+            if (!(obj is CellConstraint))
                 return false;
 
-            var other = (CellConstraint<T>)obj;
+            var other = (CellConstraint)obj;
             return this == other;
         }
 
@@ -97,14 +96,13 @@ namespace WaveFunctionCollapse
     }
 
     [Serializable]
-    public struct CellConstraintSet<T> // A set of constraints: one for each adjacent cell // HEX ONLY
-        where T : Module<T>
+    public struct CellConstraintSet // A set of constraints: one for each adjacent cell // HEX ONLY BUT YOU COULD JUST MAKE IT A NATIVE ARRAY...
     {
         public const int Length = 6;
 
-        [SerializeField] private CellConstraint<T> _constraint0, _constraint1, _constraint2, _constraint3, _constraint4, _constraint5;
+        [SerializeField] private CellConstraint _constraint0, _constraint1, _constraint2, _constraint3, _constraint4, _constraint5;
 
-        public CellConstraintSet(CellConstraint<T>[] cellConstraints)
+        public CellConstraintSet(CellConstraint[] cellConstraints)
         {
             _constraint0 = cellConstraints[0];
             _constraint1 = cellConstraints[1];
@@ -114,7 +112,7 @@ namespace WaveFunctionCollapse
             _constraint5 = cellConstraints[5];
         }
 
-        public CellConstraint<T> this[int index]
+        public CellConstraint this[int index]
         {
             get
             {
@@ -144,9 +142,9 @@ namespace WaveFunctionCollapse
             }
         }
 
-        private CellConstraintSet<T> merge(CellConstraintSet<T> addition)
+        private CellConstraintSet merge(CellConstraintSet addition)
         {
-            CellConstraintSet<T> addedSet = this;
+            CellConstraintSet addedSet = this;
 
             for(int i = 0; i < Length; i++)
                 addedSet[i] += addition[i];
@@ -154,9 +152,9 @@ namespace WaveFunctionCollapse
             return addedSet;
         }
 
-        private CellConstraintSet<T> rotate(int rotation)
+        private CellConstraintSet rotate(int rotation)
         {
-            CellConstraintSet<T> rotatedSet = this;
+            CellConstraintSet rotatedSet = this;
 
             for (int i = 0; i < Length; i ++)
                 rotatedSet[i] = this[addRotations(rotation, i)] * rotation;
@@ -166,8 +164,8 @@ namespace WaveFunctionCollapse
 
         private byte addRotations(int rotationA, int rotationB) => (byte)((rotationA + rotationB) % Length);
 
-        public static CellConstraintSet<T> operator +(CellConstraintSet<T> obj1, CellConstraintSet<T> obj2) => obj1.merge(obj2);
+        public static CellConstraintSet operator +(CellConstraintSet obj1, CellConstraintSet obj2) => obj1.merge(obj2);
 
-        public static CellConstraintSet<T> operator *(CellConstraintSet<T> obj1, int i) => obj1.rotate(i);
+        public static CellConstraintSet operator *(CellConstraintSet obj1, int i) => obj1.rotate(i);
     }
 }

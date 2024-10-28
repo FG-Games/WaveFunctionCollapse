@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEditor;
 
 namespace WaveFunctionCollapse
@@ -14,7 +16,7 @@ namespace WaveFunctionCollapse
         static void generateConstraints(ModuleSet<T> set)
         {
             T[] allModules = set.Modules;
-            List<SuperPosition<T>> states = new List<SuperPosition<T>>();
+            List<SuperModule<T>> states = new List<SuperModule<T>>();
             SuperOrientation superOrientation;
 
             // Make sure all Module's features are updated
@@ -27,13 +29,13 @@ namespace WaveFunctionCollapse
                 allModules[i].Index = i;
 
                 // Set adjacent SuperModules for module
-                CellConstraint<T>[] constraints = new CellConstraint<T>[allModules[i].Features.Length];
+                SuperModuleArray<T>[] constraints = new SuperModuleArray<T>[allModules[i].Features.Length];
 
                 // Run through each side of a module
                 for (byte side = 0; side < allModules[i].Sides; side ++)
                 {
                     evaluateSideFeature(side, allModules[i]);
-                    constraints[side] = new CellConstraint<T>(states.ToArray());
+                    constraints[side] = new SuperModuleArray<T>(states.ToArray());
                 }
 
                 allModules[i].UpdateConstraints(constraints);                
@@ -43,7 +45,7 @@ namespace WaveFunctionCollapse
             void evaluateSideFeature(int side, T module)
             {
                 int exclusionMask = module.FeatureFlagMask.Mask(side);
-                states = new List<SuperPosition<T>>();
+                states = new List<SuperModule<T>>();
 
                 // test other modules features against the feature, of the current side
                 for (int i = 0; i < allModules.Length; i ++)
@@ -76,32 +78,46 @@ namespace WaveFunctionCollapse
                 }
 
                 if(superOrientation.Valid)
-                    states.Add(new SuperPosition<T>(superOrientation, adjacentModule));
+                    states.Add(new SuperModule<T>(superOrientation, adjacentModule));
             }
         }
+    }
 
+    [Serializable]
+    public struct SuperModuleArray<T>
+        where T : Module<T>
+    {
+        public SuperModule<T>[] SuperModules;
 
-        // --- Get BaseTiles --- //
-
-        /*static List<T> getAllModules(string moduleFolderPath)
+        public SuperModuleArray(SuperModule<T>[] superModules)
         {
-            // Get the folder path where this BaseTile resides
-            string folderPath = AssetDatabase.GetAssetPath(baseTile.GetInstanceID());
-            folderPath = folderPath.Substring(0, folderPath.LastIndexOf("/"));
+            SuperModules = superModules;
+        }
 
-            // Load all BaseTile from that folder
-            string[] guids = AssetDatabase.FindAssets("t:BaseTile", new[] { moduleFolderPath });
-            List<T> modules = new List<T>();
+        public CellConstraint GetCellConstraint()
+        {
+            SuperPosition[] superPositions = new SuperPosition[SuperModules.Length];
 
-            for (int i = 0; i < guids.Length; i ++)
-            {
-                string assetPath = AssetDatabase.GUIDToAssetPath(guids[i]);
-                modules.Add(AssetDatabase.LoadAssetAtPath<T>(assetPath));
-            }
+            for(int i = 0; i < superPositions.Length; i++)
+                superPositions[i] = SuperModules[i].GetSuperPosition();
 
-            // Debug.Log(modules.Count + " Modules were found by the ModuleImporter.");
+            return new CellConstraint(superPositions);
+        }
+    }
 
-            return modules;
-        }*/
+    [Serializable]
+    public struct SuperModule<T>
+        where T : Module<T>
+    {
+        public SuperOrientation Orientations;
+        public T Module;
+
+        public SuperModule(SuperOrientation orientations, T module)
+        {
+            Orientations = orientations;
+            Module = module;
+        }
+
+        public SuperPosition GetSuperPosition() => new SuperPosition(Orientations, Module.Index);
     }
 }

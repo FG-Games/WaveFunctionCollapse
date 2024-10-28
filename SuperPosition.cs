@@ -6,96 +6,70 @@ using UnityEngine;
 namespace WaveFunctionCollapse
 {
     [Serializable]
-    public struct SuperPosition<T>
-        where T : Module<T>
+    public struct SuperPosition
     {
         public SuperOrientation Orientations; // Bitmask
-        public T Module;
+        public int ModuleIndex;
 
-        public SuperPosition(SuperOrientation orientations, T module)
+        public SuperPosition(SuperOrientation orientations, int moduleIndex)
         {
             Orientations = orientations;
-            Module = module;
-        }
-
-        public SuperPosition(T module)
-        {
-            Orientations = module.Orientations;
-            Module = module;
+            ModuleIndex = moduleIndex;
         }
 
 
         // --- Orientations --- //
 
-        public bool Union(SuperPosition<T> reference, out SuperPosition<T> union)
+        public bool Union(SuperPosition reference, out SuperPosition union)
         {
             union = reference;
             
-            if(reference.Module != Module)
+            if(reference.ModuleIndex != ModuleIndex)
                 return false;
 
-            union = new SuperPosition<T>(Orientations.Union(reference.Orientations), Module);
+            union = new SuperPosition(Orientations.Union(reference.Orientations), ModuleIndex);
             return true;
         }
 
-        public bool Intersection(SuperPosition<T> reference, out SuperPosition<T> intersection)
+        public bool Intersection(SuperPosition reference, out SuperPosition intersection)
         {
             intersection = reference;
             
-            if(reference.Module != Module)
+            if(reference.ModuleIndex != ModuleIndex)
                 return false;
 
-            intersection = new SuperPosition<T>(Orientations.Intersection(reference.Orientations), Module);
+            intersection = new SuperPosition(Orientations.Intersection(reference.Orientations), ModuleIndex);
             return intersection.Orientations.Bitmask > 0;
         }
 
-        public SuperPosition<T> Rotate(int rotation)
+        public SuperPosition Rotate(int rotation)
         {
-            return new SuperPosition<T> (Orientations.Rotate(rotation), Module);
-        }
-
-
-        // --- Constraints --- //
-
-        public CellConstraintSet<T> RotatedContraints(int i) => Module.Constraints * Orientations[i];
-
-        public CellConstraintSet<T> SuperConstraints
-        {
-            get
-            {
-                // Combine module constraints of all possible orientations
-                CellConstraintSet<T> superConstraints = RotatedContraints(0);
-
-                for (int i = 1; i < Orientations.Count; i ++)
-                    superConstraints += RotatedContraints(i);
-
-                return superConstraints;
-            }
+            return new SuperPosition (Orientations.Rotate(rotation), ModuleIndex);
         }
 
 
         // --- Operators --- //
 
-        public static bool operator == (SuperPosition<T> a, SuperPosition<T> b)
+        public static bool operator == (SuperPosition a, SuperPosition b)
         {
             return
             a.Orientations == b.Orientations &&
-            a.Module == b.Module;
+            a.ModuleIndex == b.ModuleIndex;
         }
 
-        public static bool operator != (SuperPosition<T> a, SuperPosition<T> b)
+        public static bool operator != (SuperPosition a, SuperPosition b)
         {
             return
             a.Orientations != b.Orientations ||
-            a.Module != b.Module;
+            a.ModuleIndex != b.ModuleIndex;
         }
 
         public override bool Equals(object obj)
         {
-            if (!(obj is SuperPosition<T>))
+            if (!(obj is SuperPosition))
                 return false;
 
-            var other = (SuperPosition<T>)obj;
+            var other = (SuperPosition)obj;
             return this == other;
         }
 
@@ -105,7 +79,7 @@ namespace WaveFunctionCollapse
             {
                 int hash = 17;
                 hash = hash * 31 + Orientations.GetHashCode();
-                hash = hash * 31 + (Module != null ? Module.GetHashCode() : 0);
+                hash = hash * 31 + ModuleIndex.GetHashCode();
                 return hash;
             }
         }

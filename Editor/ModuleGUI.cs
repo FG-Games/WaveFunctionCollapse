@@ -79,7 +79,7 @@ namespace WaveFunctionCollapse
 
         public virtual void DrawSuperPositions(int i)
         {
-            SerializedProperty superPosition = _constraints.GetArrayElementAtIndex(i).FindPropertyRelative("SuperPositions");
+            SerializedProperty superPosition = _constraints.GetArrayElementAtIndex(i).FindPropertyRelative("SuperModules");
             string hexSideFeature = _module.Features[i].ToString();
             
             EditorGUILayout.PropertyField(superPosition, new GUIContent("Constraints for side " + i.ToString() + " | Feature: " + hexSideFeature));
@@ -126,7 +126,8 @@ namespace WaveFunctionCollapse
         }
     }
 
-    public class SuperPositionDrawer : PropertyDrawer
+    [CustomPropertyDrawer(typeof(SuperModule<>))]
+    public class SuperModuleDrawer : PropertyDrawer
     {
         private static Color s_gray = new Color(0.4f, 0.4f, 0.4f, 1);
 

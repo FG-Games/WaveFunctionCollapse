@@ -9,9 +9,12 @@ namespace WaveFunctionCollapse
         private ICSPfield<T, A> _cspField;
         private Heap<CellSuperPosition<T, A>> _entropyHeap;
         private System.Random _random;
+        private ModuleSet<T> _moduleSet;
 
-        public CellFieldCollapse(ICellField<T, A> cellField)
+
+        public CellFieldCollapse(ICellField<T, A> cellField, ModuleSet<T> moduleSet)
         {
+            _moduleSet = moduleSet;
             _cspField = cellField.CreateCellSuperPositions(this);
             _entropyHeap = new Heap<CellSuperPosition<T, A>>(_cspField.Count);
             _random = new System.Random(cellField.Seed);
@@ -57,6 +60,39 @@ namespace WaveFunctionCollapse
         public void CollapseAt(A address, int index)
         {
             _cspField.GetCellSuperPosition(address).CollapseToModule(index, _random);
+        }
+
+
+        // --- Constraints --- //
+
+        public CellConstraintSet RotatedContraints(SuperPosition superPosition, int i) => _moduleSet.Modules[superPosition.ModuleIndex].Constraints * superPosition.Orientations[i]; // COMES OUT OF SUPERPOS 
+
+        public CellConstraintSet SuperConstraints(SuperPosition superPosition)
+        {
+            // Combine module constraints of all possible orientations
+            CellConstraintSet superConstraints = RotatedContraints(superPosition, 0);
+
+            for (int i = 1; i < superPosition.Orientations.Count; i ++)
+                superConstraints += RotatedContraints(superPosition, i);
+
+            return superConstraints;
+        }
+
+        public CellConstraintSet CombinedConstraints (CellSuperPosition<T, A> csp) // COMES OUT OF CellSuperPosition 
+        {
+            if(csp.Collapsed)
+            {
+                return RotatedContraints(csp.CollapsedPosition, 0);
+            }
+            else
+            {
+                CellConstraintSet combinedConstraints = SuperConstraints(csp.SuperPositions[0]);
+
+                for (int i = 1; i < csp.SuperPositions.Count; i++)
+                    combinedConstraints += SuperConstraints(csp.SuperPositions[i]);
+
+                return combinedConstraints;
+            }
         }
     }
 }

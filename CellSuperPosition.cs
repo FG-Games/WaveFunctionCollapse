@@ -9,18 +9,18 @@ namespace WaveFunctionCollapse
         where T : Module<T>
     {
         public Cell<T, A> Cell;
-        public List<SuperPosition<T>> SuperPositions; // Multiple module options each in multiple orientations
+        public List<SuperPosition> SuperPositions; // USE CONSTRAINT HERE
         public int Entropy { get => getEntropy(); }
         public bool Collapsed { get => _collapsedPosition != -1; }
         private CellFieldCollapse<T, A> _wfc;
-        private event Action<SuperPosition<T>> _collapse;
+        private event Action<SuperPosition> _collapse;
         [SerializeField] private int _collapsedPosition = -1;
         [SerializeField] private int _collapsedOrientation = -1;
         private ModuleSet<T> _moduleSet;
         private IAdjacentCell<Cell<T, A>> _adjacentCells;
         private bool[] _adjacentEntropyChange;
         private CellSuperPosition<T, A>[] _adjacentCSP;
-        private SuperPosition<T> _intersection;
+        private SuperPosition _intersection;
 
 
         private int _recursionCounter; // TMP
@@ -46,13 +46,13 @@ namespace WaveFunctionCollapse
 
             // Load Modules
             T[] allModules = _moduleSet.Modules;
-            SuperPositions = new List<SuperPosition<T>>(allModules.Length);
+            SuperPositions = new List<SuperPosition>(allModules.Length);
             
             for (int i = 0; i < allModules.Length; i ++)
-                SuperPositions.Add(new SuperPosition<T>(allModules[i]));
+                SuperPositions.Add(new SuperPosition(allModules[i].Orientations, i));
         }
 
-        public void SubscribeToCollapse(Action<SuperPosition<T>> action) => _collapse += action;
+        public void SubscribeToCollapse(Action<SuperPosition> action) => _collapse += action;
 
 
         // --- Collapse --- //
@@ -68,7 +68,7 @@ namespace WaveFunctionCollapse
         {
             for (int i = 0; i < SuperPositions.Count; i ++)
             {
-                if(SuperPositions[i].Module.Index == moduleIndex)
+                if(SuperPositions[i].ModuleIndex == moduleIndex)
                 {
                     setCollapsedPosition(i);
                     setCollapsedOrientation(random.Next(0, SuperPositions[_collapsedPosition].Orientations.Count));
@@ -119,43 +119,24 @@ namespace WaveFunctionCollapse
 
         // --- Collapsed Position --- //
 
-        public SuperPosition<T> CollapsedPosition
+        public SuperPosition CollapsedPosition
         {
             get
             {
                 if ( _collapsedPosition == -1 || _collapsedOrientation == -1)
                     UnityEngine.Debug.LogError("These's no collapsed position at " + Cell.Address);
 
-                SuperPosition<T> pos = SuperPositions[_collapsedPosition];
+                SuperPosition pos = SuperPositions[_collapsedPosition];
                 SuperOrientation orientations = new SuperOrientation((int)Mathf.Pow(2, _collapsedOrientation));
-                return new SuperPosition<T>(orientations, pos.Module);
+                return new SuperPosition(orientations, pos.ModuleIndex);
             }
         }
 
 
         // --- Constraints --- //
 
-        public CellConstraintSet<T> CombinedConstraints
-        {
-            get
-            {
-                if(Collapsed)
-                {
-                    return CollapsedPosition.RotatedContraints(0);
-                }
-                else
-                {
-                    CellConstraintSet<T> combinedConstraints = SuperPositions[0].SuperConstraints;
-
-                    for (int i = 1; i < SuperPositions.Count; i++)
-                        combinedConstraints += SuperPositions[i].SuperConstraints;
-
-                    return combinedConstraints;
-                }
-            }
-        }
         
-        private void addConstraint(CellConstraint<T> constraint, out bool entropyChange)
+        private void addConstraint(CellConstraint constraint, out bool entropyChange)
         {
             _recursionCounter ++;
 
@@ -205,7 +186,7 @@ namespace WaveFunctionCollapse
                 if (_adjacentCells.IsValid(side))
                 {
                     _adjacentCSP[side] = _wfc.GetCellSuperPosition(_adjacentCells.GetCell(side).Address);
-                    _adjacentCSP[side].addConstraint(CombinedConstraints[side], out _adjacentEntropyChange[side]);
+                    _adjacentCSP[side].addConstraint(_wfc.CombinedConstraints(this)[side], out _adjacentEntropyChange[side]);
                 }
                 else
                 {
@@ -223,6 +204,10 @@ namespace WaveFunctionCollapse
                 }
             }
         }
+
+        // TEMPORARARY HACK
+
+        public CellConstraintSet CombinedConstraints => _wfc.CombinedConstraints(this);
 
 
         // --- Heap --- //
