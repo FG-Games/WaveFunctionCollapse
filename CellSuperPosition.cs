@@ -8,18 +8,28 @@ namespace WaveFunctionCollapse
     public class CellSuperPosition<T, A> : IHeapItem<CellSuperPosition<T, A>>
         where T : Module<T>
     {
+
+        // --- CSP Field
+        public A Address { get => _address; }
         public Cell<T, A> Cell;
+
+
+        // --- WFC
+        private CellFieldCollapse<T, A> _wfc;
         public List<SuperPosition> SuperPositions; // USE CONSTRAINT HERE
         public int Entropy { get => getEntropy(); }
         public bool Collapsed { get => _collapsedPosition != -1; }
-        private CellFieldCollapse<T, A> _wfc;
-        private event Action<SuperPosition> _collapse;
+        [SerializeField] private A _address;
         [SerializeField] private int _collapsedPosition = -1;
         [SerializeField] private int _collapsedOrientation = -1;
-        private ModuleSet<T> _moduleSet;
+        private event Action<SuperPosition> _collapse;
+
+
+        // --- Memory
         private IAdjacentCell<Cell<T, A>> _adjacentCells;
         private bool[] _adjacentEntropyChange;
-        private CellSuperPosition<T, A>[] _adjacentCSP;
+        private CellSuperPosition<T, A>[] _adjacentCSParray;
+        private IAdjacentCell<CellSuperPosition<T, A>> _adjacentCSP;
         private SuperPosition _intersection;
 
 
@@ -28,28 +38,31 @@ namespace WaveFunctionCollapse
 
         // --- Setup --- //
 
-        public CellSuperPosition(Cell<T, A> cell, CellFieldCollapse<T, A> wfc, ModuleSet<T> moduleSet)
+        public CellSuperPosition(Cell<T, A> cell, CellFieldCollapse<T, A> wfc, ModuleSet<T> moduleSet) // OBSOLETE
         {
+            _address = cell.Address;
+            //Debug.Log(Address);
             Cell = cell;
             _wfc = wfc;
-            _moduleSet = moduleSet;
 
             // WFC Events
             _collapse += Cell.OnCollapse;
-            setSuperPosition();
-        }
-
-        private void setSuperPosition()
-        {
             _collapsedPosition = -1;
             _collapsedOrientation = -1;
+            SuperPositions = moduleSet.SuperPositions;
+        }
 
-            // Load Modules
-            T[] allModules = _moduleSet.Modules;
-            SuperPositions = new List<SuperPosition>(allModules.Length);
-            
-            for (int i = 0; i < allModules.Length; i ++)
-                SuperPositions.Add(new SuperPosition(allModules[i].Orientations, i));
+        public CellSuperPosition(Cell<T, A> cell, CellFieldCollapse<T, A> wfc, List<SuperPosition> superConstraint) 
+        {
+            _address = cell.Address;
+            Cell = cell;
+            _wfc = wfc;
+
+            // WFC Events
+            _collapse += Cell.OnCollapse;
+            _collapsedPosition = -1;
+            _collapsedOrientation = -1;
+            SuperPositions = superConstraint;
         }
 
         public void SubscribeToCollapse(Action<SuperPosition> action) => _collapse += action;
@@ -124,7 +137,7 @@ namespace WaveFunctionCollapse
             get
             {
                 if ( _collapsedPosition == -1 || _collapsedOrientation == -1)
-                    UnityEngine.Debug.LogError("These's no collapsed position at " + Cell.Address);
+                    UnityEngine.Debug.LogError("These's no collapsed position at " + Address);
 
                 SuperPosition pos = SuperPositions[_collapsedPosition];
                 SuperOrientation orientations = new SuperOrientation((int)Mathf.Pow(2, _collapsedOrientation));
@@ -163,7 +176,7 @@ namespace WaveFunctionCollapse
                 }
 
                 if(SuperPositions.Count == 0)
-                    UnityEngine.Debug.LogError("No collapse possible at " + Cell.Address);
+                    UnityEngine.Debug.LogError("No collapse possible at " + Address);
             }
 
             entropyChange = Entropy != previousEntropy;            
@@ -172,26 +185,16 @@ namespace WaveFunctionCollapse
         public void ConstraintAdjacentCells()
         {
             // The constraints of adjacent cells recursively
-
-            if(_adjacentCells == null)
-            {
-                _adjacentCells = Cell.GetAdjacentCells();
-                _adjacentEntropyChange = new bool[_adjacentCells.Length];
-                _adjacentCSP = new CellSuperPosition<T, A>[_adjacentCells.Length];
-            }
-
-            for (byte side = 0; side < _adjacentCells.Length; side ++)
-            {
-                // Constraint adjacent cells and check for changes in entropy
-                if (_adjacentCells.IsValid(side))
-                {
-                    _adjacentCSP[side] = _wfc.GetCellSuperPosition(_adjacentCells.GetCell(side).Address);
-                    _adjacentCSP[side].addConstraint(_wfc.CombinedConstraints(this)[side], out _adjacentEntropyChange[side]);
-                }
+            _adjacentCSP = _wfc._cspField.GetAdjacentCSP(Address);
+            _adjacentEntropyChange = new bool[_adjacentCSP.Length];
+            
+            // Constraint adjacent cells and check for changes in entropy
+            for (byte side = 0; side < _adjacentCSP.Length; side ++)
+            {                
+                if (_adjacentCSP.IsValid(side))
+                    _adjacentCSP.GetCell(side).addConstraint(_wfc.CombinedConstraints(this)[side], out _adjacentEntropyChange[side]);
                 else
-                {
                     _adjacentEntropyChange[side] = false;
-                }
             }
 
             // Constraint adjacent cells of all adjacent cells, had a change in entropy
@@ -199,14 +202,13 @@ namespace WaveFunctionCollapse
             {
                 if(_adjacentEntropyChange[side])
                 {
-                    _wfc.Add2EntropyHeap(_adjacentCSP[side]);
-                    _adjacentCSP[side].ConstraintAdjacentCells();
+                    _wfc.Add2EntropyHeap(_adjacentCSP.GetCell(side));
+                    _adjacentCSP.GetCell(side).ConstraintAdjacentCells();
                 }
             }
         }
 
         // TEMPORARARY HACK
-
         public CellConstraintSet CombinedConstraints => _wfc.CombinedConstraints(this);
 
 
@@ -219,13 +221,6 @@ namespace WaveFunctionCollapse
             int compare = Entropy.CompareTo(cspToCompare.Entropy);
             return -compare;
         }
-    }
-
-    public interface ICSPfield<T, A>
-        where T : Module<T>
-    {
-        int Count { get; }
-        CellSuperPosition<T, A> GetCellSuperPosition(A a);
     }
 
     public interface IAdjacentCell<T>

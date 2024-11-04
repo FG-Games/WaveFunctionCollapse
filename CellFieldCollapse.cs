@@ -1,15 +1,24 @@
+
+using System;
+using System.Data;
 using UnityEngine;
 
 namespace WaveFunctionCollapse
 {
-    public class CellFieldCollapse<T, A>
+    public abstract class CellFieldCollapse<T, A>
         where T : Module<T>
     {
-        public bool AllCellsCollapsed { get => _entropyHeap.Count == 0; }
-        private ICSPfield<T, A> _cspField;
+        // --- CSP field --- //
+        public ICSPfield<T, A> _cspField; // TMP PUBLIC TO TEST IN CSP
         private Heap<CellSuperPosition<T, A>> _entropyHeap;
         private System.Random _random;
+
+
+        // --- Events --- //
+
+        public bool AllCellsCollapsed { get => _entropyHeap.Count == 0; }
         private ModuleSet<T> _moduleSet;
+        private CellConstraintSet[] _cellConstraintSets;
 
 
         public CellFieldCollapse(ICellField<T, A> cellField, ModuleSet<T> moduleSet)
@@ -18,11 +27,20 @@ namespace WaveFunctionCollapse
             _cspField = cellField.CreateCellSuperPositions(this);
             _entropyHeap = new Heap<CellSuperPosition<T, A>>(_cspField.Count);
             _random = new System.Random(cellField.Seed);
+            _cellConstraintSets = moduleSet.CellConstraintSets;
         }
 
-        public void UpdateSeed(int seed) => _random = new System.Random(seed);
+        /*public CellFieldCollapse(int size, int seed, ModuleSet<T> moduleSet)
+        {
+            _moduleSet = moduleSet;
+            //_cspField = createCSPfield();
+            _entropyHeap = new Heap<CellSuperPosition<T, A>>(_cspField.Count);
+            _random = new System.Random(seed);
+        }*/
 
-        public CellSuperPosition<T, A> GetCellSuperPosition(A address) => _cspField.GetCellSuperPosition(address);
+        //protected abstract ICSPfield<T, A> createCSPfield();
+
+        public CellSuperPosition<T, A> GetCSP(A address) => _cspField.GetCSP(address);
 
         public void Add2EntropyHeap(CellSuperPosition<T, A> csp)
         {
@@ -36,6 +54,11 @@ namespace WaveFunctionCollapse
             else
                 _entropyHeap.Add(csp);
         }
+
+
+        // --- Collapse Control --- //
+
+        public void AlterSeed(int seed) => _random = new System.Random(seed);
 
         public void CollapseNext()
         {
@@ -56,10 +79,9 @@ namespace WaveFunctionCollapse
                 CollapseNext();
         }
 
-
         public void CollapseAt(A address, int index)
         {
-            _cspField.GetCellSuperPosition(address).CollapseToModule(index, _random);
+            _cspField.GetCSP(address).CollapseToModule(index, _random);
         }
 
 
@@ -94,5 +116,13 @@ namespace WaveFunctionCollapse
                 return combinedConstraints;
             }
         }
+    }
+
+    public interface ICSPfield<T, A>
+        where T : Module<T>
+    {
+        int Count { get; }
+        CellSuperPosition<T, A> GetCSP(A a);
+        IAdjacentCell<CellSuperPosition<T, A>> GetAdjacentCSP(A a);
     }
 }

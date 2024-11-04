@@ -42,7 +42,7 @@ namespace WaveFunctionCollapse
         [SerializeField] private SuperModuleArray<T>[] _constraints; // MAKE THIS A CONSTRAINT SET!!!!!
 
         
-        public abstract SuperOrientation Orientations { get; } // Bitmask // MAYBE MAKE THIS PART OF AN OVERALL HEX / QUAD / CUBE SETUP 
+        public abstract SuperOrientation AllOrientations { get; } // Bitmask // MAYBE MAKE THIS PART OF AN OVERALL HEX / QUAD / CUBE SETUP 
         public int AddRotations(int rotationA, int rotationB) => ((rotationA + rotationB) % Sides);
 
 
