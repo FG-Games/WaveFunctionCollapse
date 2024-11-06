@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace WaveFunctionCollapse
 {
-    public abstract class CellFieldCollapse<T, A>
+    public abstract class CellFieldCollapse<T, A> : IDisposable
         where T : Module<T>
     {
         // --- CSP field --- //
@@ -17,6 +17,11 @@ namespace WaveFunctionCollapse
         // --- Events --- //
 
         public bool AllCellsCollapsed { get => _entropyHeap.Count == 0; }
+
+
+        // --- Modules --- //
+
+        public ModuleSet<T> ModuleSet { get => _moduleSet; }
         private ModuleSet<T> _moduleSet;
         private CellConstraintSet[] _cellConstraintSets;
 
@@ -30,15 +35,15 @@ namespace WaveFunctionCollapse
             _cellConstraintSets = moduleSet.CellConstraintSets;
         }
 
-        /*public CellFieldCollapse(int size, int seed, ModuleSet<T> moduleSet)
+        public CellFieldCollapse(int size, int seed, ModuleSet<T> moduleSet)
         {
             _moduleSet = moduleSet;
-            //_cspField = createCSPfield();
+            _cspField = createCSPfield(size, this);
             _entropyHeap = new Heap<CellSuperPosition<T, A>>(_cspField.Count);
             _random = new System.Random(seed);
-        }*/
+        }
 
-        //protected abstract ICSPfield<T, A> createCSPfield();
+        protected abstract ICSPfield<T, A> createCSPfield(int size, CellFieldCollapse<T, A> cfc);
 
         public CellSuperPosition<T, A> GetCSP(A address) => _cspField.GetCSP(address);
 
@@ -87,15 +92,16 @@ namespace WaveFunctionCollapse
 
         // --- Constraints --- //
 
-        public CellConstraintSet RotatedContraints(SuperPosition superPosition, int i) => _moduleSet.Modules[superPosition.ModuleIndex].Constraints * superPosition.Orientations[i]; // COMES OUT OF SUPERPOS 
+        private CellConstraintSet rotatedContraints(SuperPosition superPosition, int i) => _moduleSet.Modules[superPosition.ModuleIndex].Constraints * superPosition.Orientations[i]; // COMES OUT OF SUPERPOS 
+        public CellConstraintSet rotatedContraints(CollapsedPosition collapsedPosition) => _moduleSet.Modules[collapsedPosition.ModuleIndex].Constraints * collapsedPosition.Orientation;
 
         public CellConstraintSet SuperConstraints(SuperPosition superPosition)
         {
             // Combine module constraints of all possible orientations
-            CellConstraintSet superConstraints = RotatedContraints(superPosition, 0);
+            CellConstraintSet superConstraints = rotatedContraints(superPosition, 0);
 
             for (int i = 1; i < superPosition.Orientations.Count; i ++)
-                superConstraints += RotatedContraints(superPosition, i);
+                superConstraints += rotatedContraints(superPosition, i);
 
             return superConstraints;
         }
@@ -104,7 +110,7 @@ namespace WaveFunctionCollapse
         {
             if(csp.Collapsed)
             {
-                return RotatedContraints(csp.CollapsedPosition, 0);
+                return rotatedContraints(csp.GetCollapsedPosition);
             }
             else
             {
@@ -115,6 +121,17 @@ namespace WaveFunctionCollapse
 
                 return combinedConstraints;
             }
+        }
+
+
+        // --- Memory --- //
+
+        public virtual void Dispose()
+        {
+            // DISPOSE OF ALL UNMANAGED MEMORY IN _cspField AND _cellConstraintSets
+            _cspField = null;
+            _entropyHeap = null;
+            _cellConstraintSets = null;
         }
     }
 

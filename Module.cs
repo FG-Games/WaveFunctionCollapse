@@ -19,10 +19,12 @@ namespace WaveFunctionCollapse
         public abstract int Sides { get; }
         public virtual byte[] Features { get => _features; }
         public virtual byte[] FeaturesReflected { get => _featuresReflected; }
-        public int FeatureFlags;
+        public int FeatureFlags { get => _featureFlags; }
 
         [SerializeField] protected byte[] _features;
         [SerializeField] protected byte[] _featuresReflected;
+        [SerializeField] protected int _featureFlags;
+        
 
         // Constraints
         public CellConstraintSet Constraints
@@ -58,7 +60,7 @@ namespace WaveFunctionCollapse
             Clear();   
             _features = new byte[Sides]; 
             _featuresReflected = new byte[Sides]; 
-            FeatureFlags = 0;
+            _featureFlags = 0;
 
             // Get features
             for (int i = 0; i < _features.Length; i ++)
@@ -75,7 +77,7 @@ namespace WaveFunctionCollapse
             {
                 int flag = int.Parse(ID.Substring(i, 1));
                 flag = flag > 1 ? 1 << (flag - 1) : flag;
-                FeatureFlags |= flag;
+                _featureFlags |= flag;
             }
         }
 
@@ -85,7 +87,7 @@ namespace WaveFunctionCollapse
         {
             _features = new byte[0];            
             _constraints = new SuperModuleArray<T>[0];
-            FeatureFlags = 0;
+            _featureFlags = 0;
         }
     }
 

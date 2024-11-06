@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Unity.VisualScripting.YamlDotNet.Serialization;
 using UnityEngine;
 
 namespace WaveFunctionCollapse
@@ -11,7 +12,7 @@ namespace WaveFunctionCollapse
 
         // --- CSP Field
         public A Address { get => _address; }
-        public Cell<T, A> Cell;
+        public Cell<T, A> Cell;  // HOPEFULLY OBSOLETE SOME TIME!
 
 
         // --- WFC
@@ -22,7 +23,7 @@ namespace WaveFunctionCollapse
         [SerializeField] private A _address;
         [SerializeField] private int _collapsedPosition = -1;
         [SerializeField] private int _collapsedOrientation = -1;
-        private event Action<SuperPosition> _collapse;
+        private event Action<CollapsedPosition> _collapse;
 
 
         // --- Memory
@@ -38,7 +39,7 @@ namespace WaveFunctionCollapse
 
         // --- Setup --- //
 
-        public CellSuperPosition(Cell<T, A> cell, CellFieldCollapse<T, A> wfc, ModuleSet<T> moduleSet) // OBSOLETE
+        public CellSuperPosition(Cell<T, A> cell, CellFieldCollapse<T, A> wfc, ModuleSet<T> moduleSet) // HOPEFULLY OBSOLETE SOME TIME!
         {
             _address = cell.Address;
             //Debug.Log(Address);
@@ -52,20 +53,19 @@ namespace WaveFunctionCollapse
             SuperPositions = moduleSet.SuperPositions;
         }
 
-        public CellSuperPosition(Cell<T, A> cell, CellFieldCollapse<T, A> wfc, List<SuperPosition> superConstraint) 
+        public CellSuperPosition(A address, CellFieldCollapse<T, A> wfc) 
         {
-            _address = cell.Address;
-            Cell = cell;
+            _address = address;
             _wfc = wfc;
 
             // WFC Events
             _collapse += Cell.OnCollapse;
             _collapsedPosition = -1;
             _collapsedOrientation = -1;
-            SuperPositions = superConstraint;
+            SuperPositions = wfc.ModuleSet.SuperPositions; // DO YOU EVEN NEED wfc?
         }
 
-        public void SubscribeToCollapse(Action<SuperPosition> action) => _collapse += action;
+        public void SubscribeToCollapse(Action<CollapsedPosition> action) => _collapse += action;
 
 
         // --- Collapse --- //
@@ -105,7 +105,7 @@ namespace WaveFunctionCollapse
             // of all orientations and modules is therefore identical with their array positions 
             _collapsedPosition = moduleIndex;
             _collapsedOrientation = orientationIndex;
-            _collapse?.Invoke(CollapsedPosition);
+            _collapse?.Invoke(GetCollapsedPosition);
         }
 
         private void setCollapsedPosition(int index) => _collapsedPosition = index;
@@ -113,7 +113,7 @@ namespace WaveFunctionCollapse
 
         private void collapseSuperPosition()
         {
-            _collapse?.Invoke(CollapsedPosition);
+            _collapse?.Invoke(GetCollapsedPosition);
 
             _recursionCounter = 0;
             ConstraintAdjacentCells();
@@ -132,7 +132,7 @@ namespace WaveFunctionCollapse
 
         // --- Collapsed Position --- //
 
-        public SuperPosition CollapsedPosition
+        public CollapsedPosition GetCollapsedPosition
         {
             get
             {
@@ -141,7 +141,7 @@ namespace WaveFunctionCollapse
 
                 SuperPosition pos = SuperPositions[_collapsedPosition];
                 SuperOrientation orientations = new SuperOrientation((int)Mathf.Pow(2, _collapsedOrientation));
-                return new SuperPosition(orientations, pos.ModuleIndex);
+                return new CollapsedPosition(pos.ModuleIndex, orientations.First);
             }
         }
 
@@ -229,5 +229,16 @@ namespace WaveFunctionCollapse
         bool IsValid(int i);
         T GetCell(int i);
         void SetCell(int i, T value);
+    }
+
+    public struct CollapsedPosition
+    {
+        public int ModuleIndex, Orientation;
+
+        public CollapsedPosition(int moduleIndex, int orientation)
+        {
+            ModuleIndex = moduleIndex;
+            Orientation = orientation;
+        }
     }
 }

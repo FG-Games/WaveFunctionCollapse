@@ -21,7 +21,7 @@ namespace WaveFunctionCollapse
         // --- WFC Events --- //
 
         public abstract CellSuperPosition<T, A> CreateCSP(CellFieldCollapse<T, A> wfc);
-        public abstract void OnCollapse(SuperPosition collapsedPosition);
+        public abstract void OnCollapse(CollapsedPosition collapsedPosition);
         public abstract void OnDecohere();
     }
 
