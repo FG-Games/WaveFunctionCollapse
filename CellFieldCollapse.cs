@@ -25,6 +25,8 @@ namespace WaveFunctionCollapse
         private ModuleSet<T> _moduleSet;
         private CellConstraintSet[] _cellConstraintSets;
 
+        // THERE NEEDS TO BE A GENERAL "COLLAPSE ALL" OPTION, THAT STARTS WITH AN INITIAL COLLAPSE
+        // THERE COULD BE AN OPTION TO SPECIFY THE INITIAL COLLAPSE
 
         public CellFieldCollapse(ICellField<T, A> cellField, ModuleSet<T> moduleSet)
         {
@@ -84,9 +86,9 @@ namespace WaveFunctionCollapse
                 CollapseNext();
         }
 
-        public void CollapseAt(A address, int index)
+        public void CollapseAt(A address, int moduleIndex)
         {
-            _cspField.GetCSP(address).CollapseToModule(index, _random);
+            _cspField.GetCSP(address).CollapseToModule(moduleIndex, _random);
         }
 
 

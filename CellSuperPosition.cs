@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Unity.VisualScripting.YamlDotNet.Serialization;
 using UnityEngine;
 
 namespace WaveFunctionCollapse
@@ -59,7 +58,6 @@ namespace WaveFunctionCollapse
             _wfc = wfc;
 
             // WFC Events
-            _collapse += Cell.OnCollapse;
             _collapsedPosition = -1;
             _collapsedOrientation = -1;
             SuperPositions = wfc.ModuleSet.SuperPositions; // DO YOU EVEN NEED wfc?
@@ -147,7 +145,6 @@ namespace WaveFunctionCollapse
 
 
         // --- Constraints --- //
-
         
         private void addConstraint(CellConstraint constraint, out bool entropyChange)
         {
@@ -223,14 +220,6 @@ namespace WaveFunctionCollapse
         }
     }
 
-    public interface IAdjacentCell<T>
-    {
-        int Length { get; }
-        bool IsValid(int i);
-        T GetCell(int i);
-        void SetCell(int i, T value);
-    }
-
     public struct CollapsedPosition
     {
         public int ModuleIndex, Orientation;
@@ -240,5 +229,13 @@ namespace WaveFunctionCollapse
             ModuleIndex = moduleIndex;
             Orientation = orientation;
         }
+    }
+
+    public interface IAdjacentCell<T>
+    {
+        int Length { get; }
+        bool IsValid(int i);
+        T GetCell(int i);
+        void SetCell(int i, T value);
     }
 }
