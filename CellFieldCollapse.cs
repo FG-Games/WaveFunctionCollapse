@@ -44,8 +44,8 @@ namespace WaveFunctionCollapse
             _entropyHeap = new Heap<CellSuperPosition<T, A>>(_cspField.Count);
             _random = new System.Random(seed);
         }
-
-        protected abstract ICSPfield<T, A> createCSPfield(int size, CellFieldCollapse<T, A> cfc);
+        
+        protected abstract ICSPfield<T, A> createCSPfield(int size, CellFieldCollapse<T, A> cfc);        
 
         public CellSuperPosition<T, A> GetCSP(A address) => _cspField.GetCSP(address);
 
@@ -64,6 +64,8 @@ namespace WaveFunctionCollapse
 
 
         // --- Collapse Control --- //
+
+        public abstract void CollapseInitialCell();
 
         public void AlterSeed(int seed) => _random = new System.Random(seed);
 
