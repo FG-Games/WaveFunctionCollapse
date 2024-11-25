@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditorInternal;
 using UnityEngine;
 
 namespace WaveFunctionCollapse
@@ -8,16 +9,100 @@ namespace WaveFunctionCollapse
     [Serializable]
     public struct CellConstraint
     {
-        public SuperPosition[] SuperPositions; // limited range of permitted modules and their possible orientations
+        public int Count => _count;
+        public int Entropy => _entropy;
+        [SerializeField] private SuperPosition[] _superPositions;
+        [SerializeField] private int _count, _entropy;
+        private int length => _superPositions.Length;
 
-        public CellConstraint(SuperPosition[] superPositions) => SuperPositions = superPositions;
+
+        // --- Setup --- //
+
+        public CellConstraint(SuperPosition[] superPositions)
+        {
+            _superPositions = superPositions;
+            _count = _entropy = 0;
+            setCount();
+            setEntropy();
+        }
+
+        private void setCount()
+        {
+            _count = 0;
+
+            for (int i = 0; i < length; i ++)
+                if(this[i].Possible)
+                    _count ++;
+        }
+
+        private void setEntropy()
+        {
+            _entropy = 0;
+
+            for (int i = 0; i < length; i ++)
+                _entropy += this[i].Orientations.Count;
+        }
+
+
+        // --- Basic Access --- //
+
+        public SuperPosition this[int moduleIndex]
+        {
+            get
+            {
+                if (moduleIndex < 0 || moduleIndex >= length)
+                    throw new IndexOutOfRangeException($"Index {moduleIndex} is out of range for the length {length}.");
+
+                return _superPositions[moduleIndex];                    
+            }
+            set
+            {
+                if (moduleIndex < 0 || moduleIndex >= length)
+                    throw new IndexOutOfRangeException($"Index {moduleIndex} is out of range for the length {length}.");
+
+                _superPositions[moduleIndex] = value;
+            }
+        }
+
+        public SuperPosition GetPossiblePosition(int index)
+        {
+            if (index < 0 || index >= length)
+                throw new IndexOutOfRangeException($"Index {index} is out of range for the amount of possible positions {length}.");
+
+            int counter = -1;
+
+            for (int i = 0; i < length; i ++)
+            {
+                if(_superPositions[i].Possible)
+                {
+                    counter ++;
+
+                    if(index == counter)
+                        return _superPositions[i];
+                }
+            }
+
+            throw new IndexOutOfRangeException($"Index {index} is out of range for the amount of possible positions {length}.");
+        }
+
+        public void Dispose()
+        {
+            Debug.Log("NEVER Disposed SuperPositions");
+
+            /*if (_superPositions.IsCreated)
+                _superPositions.Dispose();
+            if (_possiblePositions.IsCreated)
+                _possiblePositions.Dispose();*/
+        }
+
+        
 
         public bool Intersection(SuperPosition reference, out SuperPosition intersection)
         {
             intersection = reference;
 
-            for (int i = 0; i < SuperPositions.Length; i ++)
-                if(SuperPositions[i].Intersection(reference, out intersection))
+            for (int i = 0; i < _superPositions.Length; i ++)
+                if(_superPositions[i].Intersection(reference, out intersection))
                     return true;
 
             return false;
@@ -25,17 +110,27 @@ namespace WaveFunctionCollapse
 
         private CellConstraint merge(CellConstraint constraint) // Merge Contraints 
         {
-            List<SuperPosition> combinedSuperPositions = SuperPositions.ToList();
+            SuperPosition[] mergedConstraint = new SuperPosition[length];
+
+            for (int i = 0; i < length; i ++)
+                mergedConstraint[i] = _superPositions[i].Union(constraint[i]);
+
+            return new CellConstraint(mergedConstraint);
+        }
+
+        /*private CellConstraint merge(CellConstraint constraint) // Merge Contraints 
+        {
+            List<SuperPosition> combinedSuperPositions = _superPositions.ToList();
             SuperPosition merdedPosition = new SuperPosition();
 
-            for (int i = 0; i < constraint.SuperPositions.Length; i ++)
+            for (int i = 0; i < constraint._superPositions.Length; i ++)
             {
                 bool containedInConstraint = false;
                 merdedPosition = new SuperPosition();
 
-                for (int j = 0; j < SuperPositions.Length; j ++)
+                for (int j = 0; j < _superPositions.Length; j ++)
                 {
-                    if(combinedSuperPositions[j].Union(constraint.SuperPositions[i], out merdedPosition))
+                    if(combinedSuperPositions[j].Union(constraint._superPositions[i], out merdedPosition))
                     {
                         combinedSuperPositions[j] = merdedPosition;
                         containedInConstraint = true;
@@ -44,18 +139,18 @@ namespace WaveFunctionCollapse
                 }
 
                 if(!containedInConstraint)
-                    combinedSuperPositions.Add(constraint.SuperPositions[i]);
+                    combinedSuperPositions.Add(constraint._superPositions[i]);
             }
 
             return new CellConstraint(combinedSuperPositions.ToArray());
-        }
+        }*/
 
         private CellConstraint rotate(int rotation) // Rotate or offset all orientations of SuperPositions 
         {
-            SuperPosition[] offsetSuperPositions = new SuperPosition[SuperPositions.Length];
+            SuperPosition[] offsetSuperPositions = new SuperPosition[_superPositions.Length];
 
-            for (int i = 0; i < SuperPositions.Length; i ++)
-                offsetSuperPositions[i] = SuperPositions[i].Rotate(rotation);
+            for (int i = 0; i < _superPositions.Length; i ++)
+                offsetSuperPositions[i] = _superPositions[i].Rotate(rotation);
 
             return new CellConstraint(offsetSuperPositions);
         }
@@ -67,9 +162,9 @@ namespace WaveFunctionCollapse
 
         public static CellConstraint operator * (CellConstraint a, int i) => a.rotate(i);
 
-        public static bool operator == (CellConstraint a, CellConstraint b) =>  a.SuperPositions.SequenceEqual(b.SuperPositions);
+        public static bool operator == (CellConstraint a, CellConstraint b) =>  a._superPositions.SequenceEqual(b._superPositions);
 
-        public static bool operator != (CellConstraint a, CellConstraint b) => !a.SuperPositions.SequenceEqual(b.SuperPositions);
+        public static bool operator != (CellConstraint a, CellConstraint b) => !a._superPositions.SequenceEqual(b._superPositions);
 
         public override bool Equals(object obj)
         {
@@ -86,9 +181,9 @@ namespace WaveFunctionCollapse
             {
                 int hash = 17;
 
-                if (SuperPositions != null)
-                    for (int i = 1; i < SuperPositions.Length; i ++)
-                        hash = hash * 31 + SuperPositions[i].GetHashCode();
+                if (_superPositions != null)
+                    for (int i = 1; i < _superPositions.Length; i ++)
+                        hash = hash * 31 + _superPositions[i].GetHashCode();
 
                 return hash;
             }

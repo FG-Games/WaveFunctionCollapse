@@ -35,7 +35,7 @@ namespace WaveFunctionCollapse
                 for (byte side = 0; side < allModules[i].Sides; side ++)
                 {
                     evaluateSideFeature(side, allModules[i]);
-                    constraints[side] = new SuperModuleArray<T>(states.ToArray());
+                    constraints[side] = new SuperModuleArray<T>(states.ToArray(), set.Modules.Length);
                 }
 
                 allModules[i].UpdateConstraints(constraints);                
@@ -88,18 +88,23 @@ namespace WaveFunctionCollapse
         where T : Module<T>
     {
         public SuperModule<T>[] SuperModules;
+        [SerializeField] int _setLength;
 
-        public SuperModuleArray(SuperModule<T>[] superModules)
+        public SuperModuleArray(SuperModule<T>[] superModules, int setLengh)
         {
             SuperModules = superModules;
+            _setLength = setLengh;
         }
 
         public CellConstraint GetCellConstraint()
         {
-            SuperPosition[] superPositions = new SuperPosition[SuperModules.Length];
+            SuperPosition[] superPositions = new SuperPosition[_setLength];
 
-            for(int i = 0; i < superPositions.Length; i++)
-                superPositions[i] = SuperModules[i].GetSuperPosition();
+            for(int i = 0; i < _setLength; i++)
+                superPositions[i] = new SuperPosition(new SuperOrientation(0) , i);
+
+            for(int i = 0; i < SuperModules.Length; i++)
+                superPositions[SuperModules[i].Module.Index] = SuperModules[i].SuperPosition;
 
             return new CellConstraint(superPositions);
         }
@@ -111,13 +116,12 @@ namespace WaveFunctionCollapse
     {
         public SuperOrientation Orientations;
         public T Module;
+        public SuperPosition SuperPosition => new SuperPosition(Orientations, Module.Index);
 
         public SuperModule(SuperOrientation orientations, T module)
         {
             Orientations = orientations;
             Module = module;
-        }
-
-        public SuperPosition GetSuperPosition() => new SuperPosition(Orientations, Module.Index);
+        }        
     }
 }

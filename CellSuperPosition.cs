@@ -160,7 +160,7 @@ namespace WaveFunctionCollapse
                     UnityEngine.Debug.LogError("No collapse possible at " + Address);
             }
 
-            entropyChange = Entropy != previousEntropy;            
+            entropyChange = Entropy != previousEntropy;
         }
 
         public void ConstraintAdjacentCells()

@@ -10,6 +10,7 @@ namespace WaveFunctionCollapse
     {
         public SuperOrientation Orientations; // Bitmask
         public int ModuleIndex;
+        public bool Possible => Orientations.Valid;
 
         public SuperPosition(SuperOrientation orientations, int moduleIndex)
         {
@@ -20,15 +21,9 @@ namespace WaveFunctionCollapse
 
         // --- Orientations --- //
 
-        public bool Union(SuperPosition reference, out SuperPosition union)
+        public SuperPosition Union(SuperPosition reference)
         {
-            union = reference;
-            
-            if(reference.ModuleIndex != ModuleIndex)
-                return false;
-
-            union = new SuperPosition(Orientations.Union(reference.Orientations), ModuleIndex);
-            return true;
+            return new SuperPosition(Orientations.Union(reference.Orientations), ModuleIndex);
         }
 
         public bool Intersection(SuperPosition reference, out SuperPosition intersection)
