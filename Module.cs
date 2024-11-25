@@ -11,9 +11,6 @@ namespace WaveFunctionCollapse
         // Input
         public FeatureFlagMask FeatureFlagMask;
 
-        // THERE SHOULD BE POSSIBILITY TO EXCLUDE "UNIQUE" TILES, 
-        // LIKE PLAYER STARTS OR DECORATIVE / STORYTELLLING TILES
-
         // Features
         public abstract string ID { get; }
         public abstract int Sides { get; }
@@ -41,10 +38,10 @@ namespace WaveFunctionCollapse
         }
         
         public virtual void UpdateConstraints(SuperModuleArray<T>[] constraints) => _constraints = constraints;
-        [SerializeField] private SuperModuleArray<T>[] _constraints; // MAKE THIS A CONSTRAINT SET!!!!!
+        [SerializeField] private SuperModuleArray<T>[] _constraints;
 
         
-        public abstract SuperOrientation AllOrientations { get; } // Bitmask // MAYBE MAKE THIS PART OF AN OVERALL HEX / QUAD / CUBE SETUP 
+        public abstract SuperOrientation AllOrientations { get; }
         public int AddRotations(int rotationA, int rotationB) => ((rotationA + rotationB) % Sides);
 
 

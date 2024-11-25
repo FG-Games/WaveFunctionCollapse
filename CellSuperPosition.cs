@@ -11,7 +11,6 @@ namespace WaveFunctionCollapse
 
         // --- CSP Field
         public A Address { get => _address; }
-        public Cell<T, A> Cell;  // HOPEFULLY OBSOLETE SOME TIME!
 
 
         // --- WFC
@@ -26,7 +25,6 @@ namespace WaveFunctionCollapse
 
 
         // --- Memory
-        private IAdjacentCell<Cell<T, A>> _adjacentCells;
         private bool[] _adjacentEntropyChange;
         private CellSuperPosition<T, A>[] _adjacentCSParray;
         private IAdjacentCell<CellSuperPosition<T, A>> _adjacentCSP;
@@ -37,20 +35,6 @@ namespace WaveFunctionCollapse
 
 
         // --- Setup --- //
-
-        public CellSuperPosition(Cell<T, A> cell, CellFieldCollapse<T, A> wfc, ModuleSet<T> moduleSet) // HOPEFULLY OBSOLETE SOME TIME!
-        {
-            _address = cell.Address;
-            //Debug.Log(Address);
-            Cell = cell;
-            _wfc = wfc;
-
-            // WFC Events
-            _collapse += Cell.OnCollapse;
-            _collapsedPosition = -1;
-            _collapsedOrientation = -1;
-            SuperPositions = moduleSet.SuperPositions;
-        }
 
         public CellSuperPosition(A address, CellFieldCollapse<T, A> wfc) 
         {

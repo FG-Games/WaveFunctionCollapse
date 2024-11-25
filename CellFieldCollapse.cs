@@ -25,18 +25,6 @@ namespace WaveFunctionCollapse
         private ModuleSet<T> _moduleSet;
         private CellConstraintSet[] _cellConstraintSets;
 
-        // THERE NEEDS TO BE A GENERAL "COLLAPSE ALL" OPTION, THAT STARTS WITH AN INITIAL COLLAPSE
-        // THERE COULD BE AN OPTION TO SPECIFY THE INITIAL COLLAPSE
-
-        public CellFieldCollapse(ICellField<T, A> cellField, ModuleSet<T> moduleSet)
-        {
-            _moduleSet = moduleSet;
-            _cspField = cellField.CreateCellSuperPositions(this);
-            _entropyHeap = new Heap<CellSuperPosition<T, A>>(_cspField.Count);
-            _random = new System.Random(cellField.Seed);
-            _cellConstraintSets = moduleSet.CellConstraintSets;
-        }
-
         public CellFieldCollapse(int size, int seed, ModuleSet<T> moduleSet)
         {
             _moduleSet = moduleSet;
@@ -48,6 +36,8 @@ namespace WaveFunctionCollapse
         protected abstract ICSPfield<T, A> createCSPfield(int size, CellFieldCollapse<T, A> cfc);        
 
         public CellSuperPosition<T, A> GetCSP(A address) => _cspField.GetCSP(address);
+
+        public void AlterSeed(int seed) => _random = new System.Random(seed);
 
         public void Add2EntropyHeap(CellSuperPosition<T, A> csp)
         {
@@ -67,8 +57,6 @@ namespace WaveFunctionCollapse
 
         public abstract void CollapseInitialCell();
 
-        public void AlterSeed(int seed) => _random = new System.Random(seed);
-
         public void CollapseNext()
         {
             if(AllCellsCollapsed)
@@ -80,6 +68,14 @@ namespace WaveFunctionCollapse
                 CollapseNext();
             else
                 csp.CollapseRandom(_random);
+        }
+
+        public void InstantCollapseAll()
+        {
+            CollapseInitialCell();
+
+            while (!AllCellsCollapsed)
+                CollapseNext();
         }
 
         public void CollapseAll()
