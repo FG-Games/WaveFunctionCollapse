@@ -29,6 +29,7 @@ namespace WaveFunctionCollapse
         private bool[] _adjacentEntropyChange;
         private CellSuperPosition<T, A>[] _adjacentCSParray;
         private IAdjacentCell<CellSuperPosition<T, A>> _adjacentCSP;
+        CellConstraintSet _combinedConstraints;
         private SuperPosition _intersection;
 
 
@@ -161,12 +162,13 @@ namespace WaveFunctionCollapse
             // The constraints of adjacent cells recursively
             _adjacentCSP = _wfc._cspField.GetAdjacentCSP(Address);
             _adjacentEntropyChange = new bool[_adjacentCSP.Length];
+            _combinedConstraints = _wfc.CombinedConstraints(this, cellConstraintSets);
             
             // Constraint adjacent cells and check for changes in entropy
             for (byte side = 0; side < _adjacentCSP.Length; side ++)
             {                
                 if (_adjacentCSP.IsValid(side))
-                    _adjacentCSP.GetCell(side).addConstraint(_wfc.CombinedConstraints(this, cellConstraintSets)[side], out _adjacentEntropyChange[side]);
+                    _adjacentCSP.GetCell(side).addConstraint(_combinedConstraints[side], out _adjacentEntropyChange[side]);
                 else
                     _adjacentEntropyChange[side] = false;
             }
