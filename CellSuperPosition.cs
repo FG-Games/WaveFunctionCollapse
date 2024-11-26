@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using UnityEngine;
 
 namespace WaveFunctionCollapse
@@ -56,7 +57,7 @@ namespace WaveFunctionCollapse
         {
             setCollapsedPosition(superPosIndex);
             setCollapsedOrientation(orientationIndex);
-            collapseSuperPosition();
+            _collapse?.Invoke(GetCollapsedPosition);
         }
 
         public void CollapseToModule (int moduleIndex, System.Random random)
@@ -67,7 +68,7 @@ namespace WaveFunctionCollapse
                 {
                     setCollapsedPosition(i);
                     setCollapsedOrientation(random.Next(0, SuperPositions[_collapsedPosition].Orientations.Count));
-                    collapseSuperPosition();
+                    _collapse?.Invoke(GetCollapsedPosition);
                     return;
                 }
             }
@@ -78,7 +79,7 @@ namespace WaveFunctionCollapse
         {
             setCollapsedPosition(random.Next(0, SuperPositions.Count));
             setCollapsedOrientation(random.Next(0, SuperPositions[_collapsedPosition].Orientations.Count));
-            collapseSuperPosition();
+            _collapse?.Invoke(GetCollapsedPosition);
         }
 
         public void SetModule (int moduleIndex, int orientationIndex)
@@ -92,14 +93,6 @@ namespace WaveFunctionCollapse
 
         private void setCollapsedPosition(int index) => _collapsedPosition = index;
         private void setCollapsedOrientation(int index) => _collapsedOrientation = SuperPositions[_collapsedPosition].Orientations[index];
-
-        private void collapseSuperPosition()
-        {
-            _collapse?.Invoke(GetCollapsedPosition);
-
-            _recursionCounter = 0;
-            ConstraintAdjacentCells();
-        }
 
         private int getEntropy()
         {
@@ -163,7 +156,7 @@ namespace WaveFunctionCollapse
             entropyChange = Entropy != previousEntropy;
         }
 
-        public void ConstraintAdjacentCells()
+        public void ConstraintAdjacentCells(CellConstraintSet[] cellConstraintSets)
         {
             // The constraints of adjacent cells recursively
             _adjacentCSP = _wfc._cspField.GetAdjacentCSP(Address);
@@ -173,7 +166,7 @@ namespace WaveFunctionCollapse
             for (byte side = 0; side < _adjacentCSP.Length; side ++)
             {                
                 if (_adjacentCSP.IsValid(side))
-                    _adjacentCSP.GetCell(side).addConstraint(_wfc.CombinedConstraints(this)[side], out _adjacentEntropyChange[side]);
+                    _adjacentCSP.GetCell(side).addConstraint(_wfc.CombinedConstraints(this, cellConstraintSets)[side], out _adjacentEntropyChange[side]);
                 else
                     _adjacentEntropyChange[side] = false;
             }
@@ -184,13 +177,13 @@ namespace WaveFunctionCollapse
                 if(_adjacentEntropyChange[side])
                 {
                     _wfc.Add2EntropyHeap(_adjacentCSP.GetCell(side));
-                    _adjacentCSP.GetCell(side).ConstraintAdjacentCells();
+                    _adjacentCSP.GetCell(side).ConstraintAdjacentCells(cellConstraintSets);
                 }
             }
         }
 
         // TEMPORARARY HACK
-        public CellConstraintSet CombinedConstraints => _wfc.CombinedConstraints(this);
+        // public CellConstraintSet CombinedConstraints => _wfc.CombinedConstraints(this);
 
 
         // --- Heap --- //
