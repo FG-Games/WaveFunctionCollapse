@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Data;
 using UnityEngine;
 
 namespace WaveFunctionCollapse
@@ -12,7 +10,6 @@ namespace WaveFunctionCollapse
 
         // --- CSP Field
         public A Address => _address;
-
 
         // --- WFC
         public CellConstraint SuperPositions;

@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using UnityEditorInternal;
 using UnityEngine;
 
 namespace WaveFunctionCollapse
@@ -9,9 +7,12 @@ namespace WaveFunctionCollapse
     [Serializable]
     public struct CellConstraint
     {
+        public static void SetCellConstraintLength(int lenth) => s_CellConstraintLength = lenth;
+        private static int s_CellConstraintLength;
+
         public SuperPosition[] SuperPositions => _superPositions;
         public int Count => getCount();
-        public int Length => _superPositions.Length;
+        public int Length => s_CellConstraintLength;
         public int Entropy => getEntropy();
         [SerializeField] private SuperPosition[] _superPositions;
 
@@ -93,7 +94,7 @@ namespace WaveFunctionCollapse
 
         private CellConstraint rotate(int rotation) // Rotate or offset all orientations of SuperPositions 
         {
-            SuperPosition[] offsetSuperPositions = new SuperPosition[_superPositions.Length];
+            SuperPosition[] offsetSuperPositions = new SuperPosition[Length];
 
             for (int i = 0; i < _superPositions.Length; i ++)
                 offsetSuperPositions[i] = _superPositions[i].Rotate(rotation);
@@ -137,72 +138,35 @@ namespace WaveFunctionCollapse
     }
 
     [Serializable]
-    public struct CellConstraintSet // A set of constraints: one for each adjacent cell // HEX ONLY BUT YOU COULD JUST MAKE IT A NATIVE ARRAY...
-                                                                                        // ACTUALLY CellConstraint SuperPositions AND CellConstraintSet HAVE THE SAME LENGTH THROUGH OUT THE 
-                                                                                        // MAP GENERATION THINK ABOUT SOLVING THE ISSUE IN ONE WAY ... LIKE DEFINING THEM INI`TIALLY AND REFERENCING A CENTRAL LENGTH ALWAYS 
+    public struct CellConstraintSet
     {
-        public int Length => 6;
+        public static void SetCellConstraintSetLength(int lenth) => s_CellConstraintSetLength = lenth;
+        private static int s_CellConstraintSetLength;
+        public int Length => s_CellConstraintSetLength;
+        [SerializeField] private CellConstraint[] _constraints;
 
-        [SerializeField] private CellConstraint _constraint0, _constraint1, _constraint2, _constraint3, _constraint4, _constraint5;
+        public CellConstraintSet(CellConstraint[] cellConstraints) => _constraints = cellConstraints;
 
-        public CellConstraintSet(CellConstraint[] cellConstraints)
-        {
-            _constraint0 = cellConstraints[0];
-            _constraint1 = cellConstraints[1];
-            _constraint2 = cellConstraints[2];
-            _constraint3 = cellConstraints[3];
-            _constraint4 = cellConstraints[4];
-            _constraint5 = cellConstraints[5];
-        }
-
-        public CellConstraint this[int index]
-        {
-            get
-            {
-                return index switch
-                {
-                    0 => _constraint0, 
-                    1 => _constraint1,
-                    2 => _constraint2,
-                    3 => _constraint3,
-                    4 => _constraint4,
-                    5 => _constraint5,
-                    _ => throw new IndexOutOfRangeException("Index out of range")
-                };
-            }
-            set
-            {
-                switch (index)
-                {
-                    case 0: _constraint0 = value; break;
-                    case 1: _constraint1 = value; break;
-                    case 2: _constraint2 = value; break;
-                    case 3: _constraint3 = value; break;
-                    case 4: _constraint4 = value; break;
-                    case 5: _constraint5 = value; break;
-                    default: throw new IndexOutOfRangeException("Index out of range");
-                }
-            }
-        }
+        public CellConstraint this[int index] { get => _constraints[index]; set => _constraints[index] = value; }
 
         private CellConstraintSet merge(CellConstraintSet addition)
         {
-            CellConstraintSet addedSet = this;
+            CellConstraint[] addedSet = new CellConstraint[Length];
 
             for(int i = 0; i < Length; i++)
-                addedSet[i] += addition[i];
+                addedSet[i] = _constraints[i] + addition[i];
 
-            return addedSet;
+            return new CellConstraintSet(addedSet);
         }
 
         private CellConstraintSet rotate(int rotation)
         {
-            CellConstraintSet rotatedSet = this;
+            CellConstraint[] rotatedSet = new CellConstraint[Length];
 
             for (int i = 0; i < Length; i ++)
-                rotatedSet[i] = this[addRotations(rotation, i)] * rotation;
+                rotatedSet[i] = _constraints[addRotations(rotation, i)] * rotation;
 
-            return rotatedSet;
+            return new CellConstraintSet(rotatedSet);
         }
 
         private byte addRotations(int rotationA, int rotationB) => (byte)((rotationA + rotationB) % Length);

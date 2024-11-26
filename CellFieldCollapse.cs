@@ -1,6 +1,5 @@
 
 using System;
-using System.Data;
 using UnityEngine;
 
 namespace WaveFunctionCollapse
@@ -24,6 +23,10 @@ namespace WaveFunctionCollapse
         public CellFieldCollapse(int size, int seed, ModuleSet<T> moduleSet)
         {
             ModuleSet = moduleSet;
+
+            CellConstraint.SetCellConstraintLength(moduleSet.Modules.Length);
+            CellConstraintSet.SetCellConstraintSetLength(6); // TMP
+
             _cspField = createCSPfield(size, this);
             _entropyHeap = new Heap<CellSuperPosition<T, A>>(_cspField.Count);
             _random = new System.Random(seed);
