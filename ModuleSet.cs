@@ -23,17 +23,17 @@ namespace WaveFunctionCollapse
             }
         }
 
-        public List<SuperPosition> SuperPositions // MAKE THIS A CONSTRAINT
+        public CellConstraint SuperPositions
         {
             get
             {
-                List<SuperPosition> superPositions = new List<SuperPosition>();
+                SuperPosition[] superPositions = new SuperPosition[_modules.Length];
                 SuperOrientation superOrientation = _modules[0].AllOrientations;
 
-                for (int i = 0; i < _modules.Length; i++)
-                    superPositions.Add(new SuperPosition(superOrientation, i));
+                for (int i = 0; i < superPositions.Length; i++)
+                    superPositions[i] = new SuperPosition(superOrientation, i);
 
-                return superPositions;
+                return new CellConstraint(superPositions);
             }
         }
     }

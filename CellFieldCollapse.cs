@@ -17,14 +17,13 @@ namespace WaveFunctionCollapse
 
         // --- Modules --- //
 
-        public ModuleSet<T> ModuleSet => _moduleSet;
-        protected ModuleSet<T> _moduleSet;
+        public ModuleSet<T> ModuleSet { get; private set; }
         protected CellConstraintSet[] _cellConstraintSets;
-        private CellConstraintSet _combinedConstraints;
+        protected CellConstraintSet _combinedConstraints;
 
         public CellFieldCollapse(int size, int seed, ModuleSet<T> moduleSet)
         {
-            _moduleSet = moduleSet;
+            ModuleSet = moduleSet;
             _cspField = createCSPfield(size, this);
             _entropyHeap = new Heap<CellSuperPosition<T, A>>(_cspField.Count);
             _random = new System.Random(seed);

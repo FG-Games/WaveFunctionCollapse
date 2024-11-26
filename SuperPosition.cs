@@ -8,7 +8,7 @@ namespace WaveFunctionCollapse
     [Serializable]
     public struct SuperPosition
     {
-        public SuperOrientation Orientations; // Bitmask
+        public SuperOrientation Orientations; // Bitmask to store all possible orientations
         public int ModuleIndex;
         public bool Possible => Orientations.Valid;
 
@@ -19,28 +19,11 @@ namespace WaveFunctionCollapse
         }
 
 
-        // --- Orientations --- //
+        // There are no safe guards for mismatching module indices!
 
-        public SuperPosition Union(SuperPosition reference)
-        {
-            return new SuperPosition(Orientations.Union(reference.Orientations), ModuleIndex);
-        }
-
-        public bool Intersection(SuperPosition reference, out SuperPosition intersection)
-        {
-            intersection = reference;
-            
-            if(reference.ModuleIndex != ModuleIndex)
-                return false;
-
-            intersection = new SuperPosition(Orientations.Intersection(reference.Orientations), ModuleIndex);
-            return intersection.Orientations.Bitmask > 0;
-        }
-
-        public SuperPosition Rotate(int rotation)
-        {
-            return new SuperPosition (Orientations.Rotate(rotation), ModuleIndex);
-        }
+        public SuperPosition Union(SuperPosition reference) => new SuperPosition(Orientations.Union(reference.Orientations), ModuleIndex);
+        public SuperPosition Intersection(SuperPosition reference) => new SuperPosition(Orientations.Intersection(reference.Orientations), ModuleIndex);
+        public SuperPosition Rotate(int rotation) => new SuperPosition (Orientations.Rotate(rotation), ModuleIndex);
 
 
         // --- Operators --- //
