@@ -9,6 +9,7 @@ namespace WaveFunctionCollapse
     [Serializable]
     public struct CellConstraint
     {
+        public SuperPosition[] SuperPositions => _superPositions;
         public int Count => _count;
         public int Entropy => _entropy;
         [SerializeField] private SuperPosition[] _superPositions;
@@ -118,33 +119,6 @@ namespace WaveFunctionCollapse
             return new CellConstraint(mergedConstraint);
         }
 
-        /*private CellConstraint merge(CellConstraint constraint) // Merge Contraints 
-        {
-            List<SuperPosition> combinedSuperPositions = _superPositions.ToList();
-            SuperPosition merdedPosition = new SuperPosition();
-
-            for (int i = 0; i < constraint._superPositions.Length; i ++)
-            {
-                bool containedInConstraint = false;
-                merdedPosition = new SuperPosition();
-
-                for (int j = 0; j < _superPositions.Length; j ++)
-                {
-                    if(combinedSuperPositions[j].Union(constraint._superPositions[i], out merdedPosition))
-                    {
-                        combinedSuperPositions[j] = merdedPosition;
-                        containedInConstraint = true;
-                        break;
-                    }
-                }
-
-                if(!containedInConstraint)
-                    combinedSuperPositions.Add(constraint._superPositions[i]);
-            }
-
-            return new CellConstraint(combinedSuperPositions.ToArray());
-        }*/
-
         private CellConstraint rotate(int rotation) // Rotate or offset all orientations of SuperPositions 
         {
             SuperPosition[] offsetSuperPositions = new SuperPosition[_superPositions.Length];
@@ -193,7 +167,7 @@ namespace WaveFunctionCollapse
     [Serializable]
     public struct CellConstraintSet // A set of constraints: one for each adjacent cell // HEX ONLY BUT YOU COULD JUST MAKE IT A NATIVE ARRAY...
     {
-        public const int Length = 6;
+        public int Length => 6;
 
         [SerializeField] private CellConstraint _constraint0, _constraint1, _constraint2, _constraint3, _constraint4, _constraint5;
 
