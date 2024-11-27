@@ -29,7 +29,7 @@ namespace WaveFunctionCollapse
                 SuperOrientation superOrientation = _modules[0].AllOrientations;
 
                 for (int i = 0; i < superPositions.Length; i++)
-                    superPositions[i] = new SuperPosition(superOrientation, i);
+                    superPositions[i] = new SuperPosition(i, superOrientation);
 
                 return new CellConstraint(superPositions);
             }

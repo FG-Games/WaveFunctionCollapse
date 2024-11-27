@@ -4,21 +4,20 @@ using UnityEngine;
 namespace WaveFunctionCollapse
 {
     [Serializable]
-    public class CellSuperPosition<T, A> : IHeapItem<CellSuperPosition<T, A>>
-        where T : Module<T>
+    public class CellSuperPosition<A> : IHeapItem<CellSuperPosition<A>>
     {
 
         // --- CSP Field
         public A Address => _address;
 
         // --- WFC
-        public CellConstraint SuperPositions;
-        public int Entropy => SuperPositions.Entropy;
-        public bool Collapsed => _collapsedPosition != -1;
+        public CellConstraint Constraint;
+        public int Entropy => Constraint.Entropy;
+        public bool Collapsed => _collapsedPosIndex != -1;
         [SerializeField] private A _address;
-        [SerializeField] private int _collapsedPosition = -1;
-        [SerializeField] private int _collapsedOrientation = -1;
-        private int maxOrientations(int index) => SuperPositions.Orientations(_collapsedPosition).Count;
+        [SerializeField] private int _collapsedPosIndex = -1;
+        [SerializeField] private int _collapsedOrBitmask = -1;
+        private int maxOrientations(int index) => Constraint.Orientations(_collapsedPosIndex).Count;
         private event Action<CollapsedPosition> _collapse;
 
 
@@ -27,11 +26,15 @@ namespace WaveFunctionCollapse
         public CellSuperPosition(A address, CellConstraint superPositions) 
         {
             _address = address;
+            Constraint = superPositions;
+        }
 
-            // WFC Events
-            _collapsedPosition = -1;
-            _collapsedOrientation = -1;
-            SuperPositions = superPositions;
+        public CellSuperPosition(A address, CellConstraint superPositions, int superPosIndex, int superOrIndex) 
+        {
+            _address = address;
+            Constraint = superPositions;
+            _collapsedPosIndex = superPosIndex;
+            _collapsedOrBitmask = superOrIndex;
         }
 
         public void SubscribeToCollapse(Action<CollapsedPosition> action) => _collapse += action;
@@ -39,19 +42,19 @@ namespace WaveFunctionCollapse
 
         // --- Collapse --- //
 
-        public void Collapse (int superPosIndex, int orientationIndex)
+        public void Collapse (int superPosIndex, int superOrIndex)
         {
             setCollapsedPosition(superPosIndex);
-            setCollapsedOrientation(orientationIndex);
+            setCollapsedOrientation(superOrIndex);
             _collapse?.Invoke(GetCollapsedPosition);
         }
 
         public void CollapseToModule (int moduleIndex, System.Random random)
         {
-            if(SuperPositions[moduleIndex].Possible)
+            if(Constraint[moduleIndex].Possible)
             {
                 setCollapsedPosition(moduleIndex);
-                setCollapsedOrientation(random.Next(0, maxOrientations(_collapsedPosition)));
+                setCollapsedOrientation(random.Next(0, maxOrientations(_collapsedPosIndex)));
                 _collapse?.Invoke(GetCollapsedPosition);
                 return;
             }
@@ -61,13 +64,13 @@ namespace WaveFunctionCollapse
 
         public void CollapseRandom(System.Random random)
         {
-            setCollapsedPosition(random.Next(0, SuperPositions.Count));
-            setCollapsedOrientation(random.Next(0, maxOrientations(_collapsedPosition)));
+            setCollapsedPosition(random.Next(0, Constraint.Count));
+            setCollapsedOrientation(random.Next(0, maxOrientations(_collapsedPosIndex)));
             _collapse?.Invoke(GetCollapsedPosition);
         }
 
-        private void setCollapsedPosition(int index) => _collapsedPosition = index;
-        private void setCollapsedOrientation(int index) => _collapsedOrientation = SuperPositions.Orientations(_collapsedPosition)[index];
+        private void setCollapsedPosition(int index) => _collapsedPosIndex = index;
+        private void setCollapsedOrientation(int index) => _collapsedOrBitmask = Constraint.Orientations(_collapsedPosIndex)[index];
 
 
         // --- Collapsed Position --- //
@@ -76,11 +79,11 @@ namespace WaveFunctionCollapse
         {
             get
             {
-                if ( _collapsedPosition == -1 || _collapsedOrientation == -1)
+                if ( _collapsedPosIndex == -1 || _collapsedOrBitmask == -1)
                     UnityEngine.Debug.LogError("These's no collapsed position at " + Address);
 
-                SuperPosition pos = SuperPositions.GetPossiblePosition(_collapsedPosition);
-                SuperOrientation orientations = new SuperOrientation((int)Mathf.Pow(2, _collapsedOrientation));
+                SuperPosition pos = Constraint.GetPossiblePosition(_collapsedPosIndex);
+                SuperOrientation orientations = new SuperOrientation((int)Mathf.Pow(2, _collapsedOrBitmask));
                 return new CollapsedPosition(pos.ModuleIndex, orientations.First);
             }
         }
@@ -100,10 +103,10 @@ namespace WaveFunctionCollapse
             int previousEntropy = Entropy;
 
             // Go through SuperPosition and check for common States / intersections
-            for (int i = 0; i < SuperPositions.Length; i ++)
-                SuperPositions[i] = SuperPositions[i].Intersection(constraint[i]);
+            for (int i = 0; i < Constraint.Length; i ++)
+                Constraint[i] = Constraint[i].Intersection(constraint[i]);
 
-            if(SuperPositions.Count == 0)
+            if(Constraint.Count == 0)
                     UnityEngine.Debug.LogError("No collapse possible at " + Address);
 
             entropyChange = Entropy != previousEntropy;
@@ -121,10 +124,10 @@ namespace WaveFunctionCollapse
             }
             else
             {
-                CellConstraintSet combinedConstraints = SuperConstraints(SuperPositions.GetPossiblePosition(0));
+                CellConstraintSet combinedConstraints = SuperConstraints(Constraint.GetPossiblePosition(0));
 
-                for (int i = 1; i < SuperPositions.Count; i++)
-                    combinedConstraints += SuperConstraints(SuperPositions.GetPossiblePosition(i));
+                for (int i = 1; i < Constraint.Count; i++)
+                    combinedConstraints += SuperConstraints(Constraint.GetPossiblePosition(i));
 
                 return combinedConstraints;
             }
@@ -152,7 +155,7 @@ namespace WaveFunctionCollapse
 
         [SerializeField] int _heapIndex;
         public int HeapIndex { get => _heapIndex; set => _heapIndex = value; }
-        public int CompareTo(CellSuperPosition<T, A> cspToCompare)
+        public int CompareTo(CellSuperPosition<A> cspToCompare)
         {
             int compare = Entropy.CompareTo(cspToCompare.Entropy);
             return -compare;

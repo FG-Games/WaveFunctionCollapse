@@ -101,7 +101,7 @@ namespace WaveFunctionCollapse
             SuperPosition[] superPositions = new SuperPosition[_setLength];
 
             for(int i = 0; i < _setLength; i++)
-                superPositions[i] = new SuperPosition(new SuperOrientation(0) , i);
+                superPositions[i] = new SuperPosition(i, new SuperOrientation(0));
 
             for(int i = 0; i < SuperModules.Length; i++)
                 superPositions[SuperModules[i].Module.Index] = SuperModules[i].SuperPosition;
@@ -116,7 +116,7 @@ namespace WaveFunctionCollapse
     {
         public SuperOrientation Orientations;
         public T Module;
-        public SuperPosition SuperPosition => new SuperPosition(Orientations, Module.Index);
+        public SuperPosition SuperPosition => new SuperPosition(Module.Index, Orientations);
 
         public SuperModule(SuperOrientation orientations, T module)
         {

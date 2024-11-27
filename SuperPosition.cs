@@ -5,22 +5,22 @@ namespace WaveFunctionCollapse
     [Serializable]
     public struct SuperPosition
     {
-        public SuperOrientation Orientations; // Bitmask to store all possible orientations
         public int ModuleIndex;
+        public SuperOrientation Orientations; // Bitmask to store all possible orientations
         public bool Possible => Orientations.Valid;
 
-        public SuperPosition(SuperOrientation orientations, int moduleIndex)
-        {
-            Orientations = orientations;
+        public SuperPosition(int moduleIndex, SuperOrientation orientations)
+        {            
             ModuleIndex = moduleIndex;
+            Orientations = orientations;
         }
 
 
         // There are no safe guards for mismatching module indices!
 
-        public SuperPosition Union(SuperPosition reference) => new SuperPosition(Orientations.Union(reference.Orientations), ModuleIndex);
-        public SuperPosition Intersection(SuperPosition reference) => new SuperPosition(Orientations.Intersection(reference.Orientations), ModuleIndex);
-        public SuperPosition Rotate(int rotation) => new SuperPosition (Orientations.Rotate(rotation), ModuleIndex);
+        public SuperPosition Union(SuperPosition reference) => new SuperPosition(ModuleIndex, Orientations.Union(reference.Orientations));
+        public SuperPosition Intersection(SuperPosition reference) => new SuperPosition(ModuleIndex, Orientations.Intersection(reference.Orientations));
+        public SuperPosition Rotate(int rotation) => new SuperPosition (ModuleIndex, Orientations.Rotate(rotation));
 
 
         // --- Operators --- //

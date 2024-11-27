@@ -1,4 +1,3 @@
-
 using System;
 using UnityEngine;
 
@@ -8,10 +7,10 @@ namespace WaveFunctionCollapse
         where T : Module<T>
     {
         // --- CSP field --- //
-        private ICSPfield<T, A> _cspField;
-        private Heap<CellSuperPosition<T, A>> _entropyHeap;
-        public bool AllCellsCollapsed => _entropyHeap.Count == 0;
-        private System.Random _random;        
+        public bool AllCellsCollapsed => _entropyHeap == null || _entropyHeap.Count == 0;
+        protected Heap<CellSuperPosition<A>> _entropyHeap;
+        protected abstract ICSPfield<A> _cspField { get; }
+        private System.Random _random;
 
 
         // --- Modules --- //
@@ -27,22 +26,18 @@ namespace WaveFunctionCollapse
             CellConstraint.SetCellConstraintLength(moduleSet.Modules.Length);
             CellConstraintSet.SetCellConstraintSetLength(6); // TMP
 
-            _cspField = createCSPfield(size, this);
-            _entropyHeap = new Heap<CellSuperPosition<T, A>>(_cspField.Count);
             _random = new System.Random(seed);
             _cellConstraintSets = moduleSet.CellConstraintSets;
         }
-        
-        protected abstract ICSPfield<T, A> createCSPfield(int size, CellFieldCollapse<T, A> cfc);
-        public CellSuperPosition<T, A> GetCSP(A address) => _cspField.GetCSP(address);
-        public void AlterSeed(int seed) => _random = new System.Random(seed);
+
+        public CellSuperPosition<A> GetCSP(A address) => _cspField.GetCSP(address);
 
 
         // --- Collapse Control --- //
 
         public abstract void CollapseInitialCell();
 
-        public void Collapse(CellSuperPosition<T, A> csp, int superPosIndex, int orientationIndex)
+        public void Collapse(CellSuperPosition<A> csp, int superPosIndex, int orientationIndex)
         {
             csp.Collapse(superPosIndex, orientationIndex);
             ConstraintAdjacentCells(csp.Address);
@@ -53,7 +48,7 @@ namespace WaveFunctionCollapse
             if(AllCellsCollapsed)
                 return;
 
-            CellSuperPosition<T, A> csp = _entropyHeap.RemoveFirst();
+            CellSuperPosition<A> csp = _entropyHeap.RemoveFirst();
 
             if (csp.Collapsed)
                 CollapseNext();
@@ -80,6 +75,9 @@ namespace WaveFunctionCollapse
 
         public void CollapseAt(A address, int moduleIndex)
         {
+            if(_cspField.GetCSP(address).Collapsed)
+                return;
+
             _cspField.GetCSP(address).CollapseToModule(moduleIndex, _random);
             ConstraintAdjacentCells(address);
         }
@@ -90,10 +88,10 @@ namespace WaveFunctionCollapse
         public void ConstraintAdjacentCells(A address)
         {
             bool[] adjacentEntropyChange;
-            IAdjacentCell<CellSuperPosition<T, A>> adjacentCSP;
+            IAdjacentCell<CellSuperPosition<A>> adjacentCSP;
 
             // The constraints of adjacent cells recursively
-            CellSuperPosition<T, A> csp = _cspField.GetCSP(address);
+            CellSuperPosition<A> csp = _cspField.GetCSP(address);
             adjacentCSP = _cspField.GetAdjacentCSP(address);
             adjacentEntropyChange = new bool[adjacentCSP.Length];
             _combinedConstraints = csp.CombinedConstraints(_cellConstraintSets);
@@ -112,14 +110,17 @@ namespace WaveFunctionCollapse
             {
                 if(adjacentEntropyChange[side])
                 {
-                    add2EntropyHeap(adjacentCSP.GetCell(side));
+                    addToEntropyHeap(adjacentCSP.GetCell(side));
                     ConstraintAdjacentCells(adjacentCSP.GetCell(side).Address);
                 }
             }
         }
 
-        private void add2EntropyHeap(CellSuperPosition<T, A> csp)
+        private void addToEntropyHeap(CellSuperPosition<A> csp)
         {
+            if(_entropyHeap == null)
+                _entropyHeap = new Heap<CellSuperPosition<A>>(_cspField.Count);
+
             if(csp.Collapsed)
                 Debug.LogError("Can't register collapsed cell as SuperPosition");
             else if(csp.HeapIndex == -1)
@@ -137,17 +138,16 @@ namespace WaveFunctionCollapse
         public virtual void Dispose()
         {
             // DISPOSE OF ALL UNMANAGED MEMORY IN _cspField AND _cellConstraintSets
-            _cspField = null;
+            _cspField.Dispose();
             _entropyHeap = null;
             _cellConstraintSets = null;
         }
     }
 
-    public interface ICSPfield<T, A>
-        where T : Module<T>
+    public interface ICSPfield<A> : IDisposable
     {
         int Count { get; }
-        CellSuperPosition<T, A> GetCSP(A a);
-        IAdjacentCell<CellSuperPosition<T, A>> GetAdjacentCSP(A a);
+        CellSuperPosition<A> GetCSP(A a);
+        IAdjacentCell<CellSuperPosition<A>> GetAdjacentCSP(A a);
     }
 }
