@@ -95,37 +95,6 @@ namespace WaveFunctionCollapse
         }
     }
 
-    public class CellConstraintSetDrawer : PropertyDrawer
-    {
-        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
-        {
-            EditorGUI.BeginProperty(position, label, property);
-
-            SerializedProperty _constraint0 = property.FindPropertyRelative("_constraint0");
-            SerializedProperty _constraint1 = property.FindPropertyRelative("_constraint1");
-            SerializedProperty _constraint2 = property.FindPropertyRelative("_constraint2");
-            SerializedProperty _constraint3 = property.FindPropertyRelative("_constraint3");
-            SerializedProperty _constraint4 = property.FindPropertyRelative("_constraint4");
-            SerializedProperty _constraint5 = property.FindPropertyRelative("_constraint5");
-
-            EditorGUILayout.LabelField(label, EditorStyles.boldLabel);
-            EditorGUILayout.Space(10);
-
-            for (int i = 0; i < 6; i++)
-            {
-                EditorGUILayout.PropertyField(_constraint0.FindPropertyRelative("SuperPositions"), new GUIContent("Constraints for side 0"));
-                EditorGUILayout.PropertyField(_constraint1.FindPropertyRelative("SuperPositions"), new GUIContent("Constraints for side 1"));
-                EditorGUILayout.PropertyField(_constraint2.FindPropertyRelative("SuperPositions"), new GUIContent("Constraints for side 2"));
-                EditorGUILayout.PropertyField(_constraint3.FindPropertyRelative("SuperPositions"), new GUIContent("Constraints for side 3"));
-                EditorGUILayout.PropertyField(_constraint4.FindPropertyRelative("SuperPositions"), new GUIContent("Constraints for side 4"));
-                EditorGUILayout.PropertyField(_constraint5.FindPropertyRelative("SuperPositions"), new GUIContent("Constraints for side 5"));
-                EditorGUILayout.Space(20);
-            }
-
-            EditorGUI.EndProperty();
-        }
-    }
-
     [CustomPropertyDrawer(typeof(SuperModule<>))]
     public class SuperModuleDrawer : PropertyDrawer
     {

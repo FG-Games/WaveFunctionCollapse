@@ -2,13 +2,10 @@ using System;
 
 namespace WaveFunctionCollapse
 {
-    [Serializable]
     public struct SuperPosition
     {
         public int ModuleIndex;
-        public SuperOrientation Orientations; // Bitmask to store all possible orientations
-        public bool Possible => Orientations.Valid;
-
+        public SuperOrientation Orientations;
         public SuperPosition(int moduleIndex, SuperOrientation orientations)
         {            
             ModuleIndex = moduleIndex;
@@ -16,47 +13,29 @@ namespace WaveFunctionCollapse
         }
 
 
-        // There are no safe guards for mismatching module indices!
+        // --- Basic Access --- //
 
-        public SuperPosition Union(SuperPosition reference) => new SuperPosition(ModuleIndex, Orientations.Union(reference.Orientations));
-        public SuperPosition Intersection(SuperPosition reference) => new SuperPosition(ModuleIndex, Orientations.Intersection(reference.Orientations));
-        public SuperPosition Rotate(int rotation) => new SuperPosition (ModuleIndex, Orientations.Rotate(rotation));
-
-
-        // --- Operators --- //
-
-        public static bool operator == (SuperPosition a, SuperPosition b)
+        public bool Possible()
         {
-            return
-            a.Orientations == b.Orientations &&
-            a.ModuleIndex == b.ModuleIndex;
+            return Orientations.Valid();
         }
 
-        public static bool operator != (SuperPosition a, SuperPosition b)
+
+        // --- Operations --- //
+
+        public SuperPosition Union(SuperPosition reference)
         {
-            return
-            a.Orientations != b.Orientations ||
-            a.ModuleIndex != b.ModuleIndex;
+            return new SuperPosition(ModuleIndex, Orientations.Union(reference.Orientations));
         }
 
-        public override bool Equals(object obj)
+        public SuperPosition Intersection(SuperPosition reference)
         {
-            if (!(obj is SuperPosition))
-                return false;
-
-            var other = (SuperPosition)obj;
-            return this == other;
+            return new SuperPosition(ModuleIndex, Orientations.Intersection(reference.Orientations));
         }
 
-        public override int GetHashCode()
+        public SuperPosition Rotate(int rotation)
         {
-            unchecked
-            {
-                int hash = 17;
-                hash = hash * 31 + Orientations.GetHashCode();
-                hash = hash * 31 + ModuleIndex.GetHashCode();
-                return hash;
-            }
+            return new SuperPosition (ModuleIndex, Orientations.Rotate(rotation));
         }
     }
 }

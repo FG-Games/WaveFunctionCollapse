@@ -23,8 +23,8 @@ namespace WaveFunctionCollapse
         {
             ModuleSet = moduleSet;
 
-            CellConstraint.SetCellConstraintLength(moduleSet.Modules.Length);
-            CellConstraintSet.SetCellConstraintSetLength(6); // TMP
+            // CellConstraint.SetCellConstraintLength(moduleSet.Modules.Length);
+            // CellConstraintSet.SetCellConstraintSetLength(6); // TMP
 
             _random = new System.Random(seed);
             _cellConstraintSets = moduleSet.CellConstraintSets;
@@ -100,7 +100,7 @@ namespace WaveFunctionCollapse
             for (byte side = 0; side < adjacentCSP.Length; side ++)
             {                
                 if (adjacentCSP.IsValid(side))
-                    adjacentCSP.GetCell(side).AddConstraint(_combinedConstraints[side], out adjacentEntropyChange[side]);
+                    adjacentCSP.GetCell(side).AddConstraint(_combinedConstraints.GetCellConstraint(side), out adjacentEntropyChange[side]);
                 else
                     adjacentEntropyChange[side] = false;
             }

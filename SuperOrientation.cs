@@ -1,85 +1,92 @@
 using System;
-using UnityEngine;
 
 namespace WaveFunctionCollapse
 {
-    [Serializable]
     public struct SuperOrientation
     {
-        [SerializeField] private int _orientationBitmask;
+        public int Bitmask;
 
-        public SuperOrientation(int bitmask) => _orientationBitmask = bitmask;
-        public int Bitmask { get => _orientationBitmask; }
-
-        public int this[int index] { get => getOrientation(index); }
-        public int First { get => (int)Math.Log(_orientationBitmask & -_orientationBitmask, 2); } 
-        public int Count { get => count; }
-        public bool Valid { get => _orientationBitmask > 0; }
-
-
-        public void SetOrientation (int index) => _orientationBitmask |= (1 << index);
-        public SuperOrientation Union (SuperOrientation superOrientation) => new SuperOrientation(_orientationBitmask | superOrientation.Bitmask);
-        public SuperOrientation Intersection (SuperOrientation superOrientation) => new SuperOrientation(_orientationBitmask & superOrientation.Bitmask);
-        public SuperOrientation Rotate (int rotation) => new SuperOrientation((_orientationBitmask << rotation) | (_orientationBitmask >> (6 - rotation)) & 0x3F);
-
-        private int count
+        public SuperOrientation(int bitmask)
         {
-            get
-            {
-                int orientations = _orientationBitmask;
-                int count = 0;
-
-                while (orientations > 0)
-                {
-                    orientations &= (orientations - 1); // Clear the lowest set bit
-                    count++;
-                }
-
-                return count;
-            }
+            Bitmask = bitmask;
         }
 
-        private int getOrientation(int index)
+
+        // --- Basic Access --- //
+        
+        public int First() // Returns the index of the first set bit (trailing zero count)
         {
-            int orientations = _orientationBitmask;
-            int orientation = 0;
+            if (Bitmask == 0) return -1; // No bits set, return sentinel value
+                return CountTrailingZeros(Bitmask);
+        }
+
+        public bool Valid()
+        {
+            return Bitmask > 0;
+        }
+
+        public int Count()
+        {
+            int orientations = Bitmask;
             int count = 0;
 
             while (orientations > 0)
             {
-                orientation = (int)Math.Log(orientations & -orientations, 2); // Get lowest set orientation
+                orientations &= (orientations - 1); // Clear the lowest set bit
+                count++;
+            }
+
+            return count;
+        }
+
+        public int GetOrientation(int index)
+        {
+            int orientations = Bitmask;
+            int count = 0;
+
+            while (orientations > 0)
+            {
+                // Get the position of the lowest set bit
+                int orientation = CountTrailingZeros(orientations);
 
                 if (count == index)
-                    return (int)orientation;
+                    return orientation;
 
                 orientations &= (orientations - 1); // Clear the lowest set bit
-                count ++;
+                count++;
             }
 
-            throw new ArgumentOutOfRangeException(nameof(index), $"Index is {index}, but must be between 0 and {Count}. ");
+            return -1; // Index out of range
         }
 
-
-        // --- Operators --- //
-
-        public static bool operator == (SuperOrientation a, SuperOrientation b) => a._orientationBitmask == b._orientationBitmask;
-        public static bool operator != (SuperOrientation a, SuperOrientation b) => a._orientationBitmask != b._orientationBitmask;
-        public override bool Equals(object obj)
+        // Helper method to count trailing zeros using bitwise operations
+        private static int CountTrailingZeros(int value)
         {
-            if (!(obj is SuperOrientation))
-                return false;
-
-            var other = (SuperOrientation)obj;
-            return this == other;
-        }
-        public override int GetHashCode()
-        {
-            unchecked
+            int count = 0;
+            while ((value & 1) == 0)
             {
-                int hash = 17;
-                hash = hash * 31 + _orientationBitmask.GetHashCode();
-                return hash;
+                value >>= 1;
+                count++;
             }
+            return count;
+        }
+
+
+        // --- Operations --- //
+
+        public SuperOrientation Union(SuperOrientation superOrientation)
+        {
+            return new SuperOrientation(Bitmask | superOrientation.Bitmask);
+        }
+
+        public SuperOrientation Intersection(SuperOrientation superOrientation)
+        {
+            return new SuperOrientation(Bitmask & superOrientation.Bitmask);
+        }
+
+        public SuperOrientation Rotate(int rotation)
+        {
+            return new SuperOrientation(((Bitmask << rotation) | (Bitmask >> (6 - rotation))) & 0x3F);
         }
     }
 }
