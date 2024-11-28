@@ -17,7 +17,7 @@ namespace WaveFunctionCollapse
         {
             T[] allModules = set.Modules;
             List<SuperModule<T>> states = new List<SuperModule<T>>();
-            SuperOrientation superOrientation;
+            SuperModuleOrientations superOrientation;
 
             // Make sure all Module's features are updated
             for (int i = 0; i < allModules.Length; i ++)
@@ -62,7 +62,7 @@ namespace WaveFunctionCollapse
             void evaluateAdjacentSideFeature(int side, T module, T adjacentModule)
             {
                 byte feature = module.Features[side];
-                superOrientation = new SuperOrientation();
+                superOrientation = new SuperModuleOrientations();
 
                 for (byte adjacentSide = 0; adjacentSide < adjacentModule.Sides; adjacentSide++)
                 {
@@ -77,8 +77,8 @@ namespace WaveFunctionCollapse
                     }
                 }
 
-                if(superOrientation.Valid)
-                    states.Add(new SuperModule<T>(superOrientation, adjacentModule));
+                if(superOrientation.isValid)
+                    states.Add(new SuperModule<T>(adjacentModule, superOrientation));
             }
         }
     }
@@ -114,14 +114,49 @@ namespace WaveFunctionCollapse
     public struct SuperModule<T>
         where T : Module<T>
     {
-        public SuperOrientation Orientations;
         public T Module;
-        public SuperPosition SuperPosition => new SuperPosition(Module.Index, Orientations);
+        public SuperModuleOrientations Orientations;
+        public SuperPosition SuperPosition => new SuperPosition(Module.Index, Orientations.SuperOrientation);
 
-        public SuperModule(SuperOrientation orientations, T module)
+        public SuperModule(T module, SuperModuleOrientations orientations)
         {
-            Orientations = orientations;
             Module = module;
-        }        
+            Orientations = orientations;
+        }
+    }
+
+    [Serializable]
+    public struct SuperModuleOrientations
+    {
+        [SerializeField] private int _orientationBitmask;
+        public SuperModuleOrientations(int bitmask) => _orientationBitmask = bitmask;
+        public void SetOrientation (int index) => _orientationBitmask |= (1 << index);
+        public bool isValid { get => _orientationBitmask > 0; }
+        public SuperOrientation SuperOrientation => new SuperOrientation(_orientationBitmask);
+
+        
+        // --- Operators --- //
+
+        public static bool operator == (SuperModuleOrientations a, SuperModuleOrientations b) => a._orientationBitmask == b._orientationBitmask;
+        public static bool operator != (SuperModuleOrientations a, SuperModuleOrientations b) => a._orientationBitmask != b._orientationBitmask;
+
+        public override bool Equals(object obj)
+        {
+            if (!(obj is SuperModuleOrientations))
+                return false;
+
+            var other = (SuperModuleOrientations)obj;
+            return this == other;
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 17;
+                hash = hash * 31 + _orientationBitmask.GetHashCode();
+                return hash;
+            }
+        }
     }
 }
