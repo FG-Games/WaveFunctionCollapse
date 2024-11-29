@@ -26,7 +26,7 @@ namespace WaveFunctionCollapse
         {
             get
             {
-                NativeArray<SuperPosition> superPositions = new NativeArray<SuperPosition>(_modules.Length, Allocator.Temp);
+                NativeArray<SuperPosition> superPositions = new NativeArray<SuperPosition>(_modules.Length, Allocator.TempJob);
                 SuperOrientation superOrientation = _modules[0].AllOrientations;
 
                 for (int i = 0; i < superPositions.Length; i++)

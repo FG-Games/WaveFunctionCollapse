@@ -17,7 +17,6 @@ namespace WaveFunctionCollapse
 
         public ModuleSet<T> ModuleSet { get; private set; }
         protected CellConstraintSet[] _cellConstraintSets;
-        protected CellConstraintSet _combinedConstraints;
 
         public CellFieldCollapse(int size, int seed, ModuleSet<T> moduleSet)
         {
@@ -92,18 +91,18 @@ namespace WaveFunctionCollapse
             CellSuperPosition<A> csp = _cspField.GetCSP(address);
             adjacentCSP = _cspField.GetAdjacentCSP(address);
             adjacentEntropyChange = new bool[adjacentCSP.Length];
-            _combinedConstraints = csp.CombinedConstraints(_cellConstraintSets);
+            CellConstraintSet combinedConstraints = csp.CombinedConstraints(_cellConstraintSets);
             
             // Constraint adjacent cells and check for changes in entropy
             for (byte side = 0; side < adjacentCSP.Length; side ++)
             {
                 if (adjacentCSP.IsValid(side))
-                    adjacentCSP.GetCell(side).AddConstraint(_combinedConstraints.GetCellConstraint(side), out adjacentEntropyChange[side]);
+                    adjacentCSP.GetCell(side).AddConstraint(combinedConstraints.GetCellConstraint(side), out adjacentEntropyChange[side]);
                 else
                     adjacentEntropyChange[side] = false;
             }
 
-            _combinedConstraints.Dispose();
+            combinedConstraints.Dispose();
 
             // Constraint adjacent cells of all adjacent cells, had a change in entropy
             for (byte side = 0; side < adjacentEntropyChange.Length; side ++)
@@ -137,9 +136,8 @@ namespace WaveFunctionCollapse
 
         public virtual void Dispose()
         {
-            // DISPOSE OF ALL UNMANAGED MEMORY IN _cspField AND _cellConstraintSets
-            _cspField.Dispose();
             _entropyHeap = null;
+            _cspField.Dispose();            
 
             for(int i = 0; i < _cellConstraintSets.Length; i++)
                 _cellConstraintSets[i].Dispose();            

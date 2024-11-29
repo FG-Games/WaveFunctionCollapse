@@ -14,7 +14,7 @@ namespace WaveFunctionCollapse
 
         public CellConstraint Copy()
         {
-            NativeArray<SuperPosition> superPositionsCopy = new NativeArray<SuperPosition>(_superPositions.Length, Allocator.Temp);
+            NativeArray<SuperPosition> superPositionsCopy = new NativeArray<SuperPosition>(_superPositions.Length, Allocator.TempJob);
 
             for (int i = 0; i < superPositionsCopy.Length; i ++)
                 superPositionsCopy[i] = _superPositions[i];

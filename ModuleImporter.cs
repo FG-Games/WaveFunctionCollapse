@@ -99,7 +99,7 @@ namespace WaveFunctionCollapse
 
         public CellConstraint GetCellConstraint()
         {
-            NativeArray<SuperPosition> superPositions = new NativeArray<SuperPosition>(_setLength, Allocator.Temp);
+            NativeArray<SuperPosition> superPositions = new NativeArray<SuperPosition>(_setLength, Allocator.TempJob);
 
             for(int i = 0; i < _setLength; i++)
                 superPositions[i] = new SuperPosition(i, new SuperOrientation(0));

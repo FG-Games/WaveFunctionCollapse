@@ -1,14 +1,15 @@
 using System;
+using Unity.Collections;
 
 namespace WaveFunctionCollapse
 {
     [Serializable]
     public struct CellConstraintSet : IDisposable
     {
-        private CellConstraint[] _constraints;
+        private NativeArray<CellConstraint> _constraints;
         private int _orientation;
 
-        public CellConstraintSet(CellConstraint[] cellConstraints)
+        public CellConstraintSet(NativeArray<CellConstraint> cellConstraints)
         {
             _constraints = cellConstraints;
             _orientation = 0;
@@ -16,7 +17,7 @@ namespace WaveFunctionCollapse
 
         public CellConstraintSet Copy()
         {
-            CellConstraint[] constraintsCopy = new CellConstraint[_constraints.Length];
+            NativeArray<CellConstraint> constraintsCopy = new NativeArray<CellConstraint>(_constraints.Length, Allocator.TempJob);
 
             for (int i = 0; i < constraintsCopy.Length; i ++)
                 constraintsCopy[i] = _constraints[i].Copy();
@@ -39,7 +40,13 @@ namespace WaveFunctionCollapse
 
         public void Dispose()
         {
-            // Dispose native array here and all nested native arrays
+            if(_constraints.IsCreated)
+            {
+                for(int i = 0; i < _constraints.Length; i++)
+                    _constraints[i].Dispose();
+
+                _constraints.Dispose();
+            }
         }
 
 

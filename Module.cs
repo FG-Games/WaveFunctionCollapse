@@ -1,4 +1,5 @@
 using System;
+using Unity.Collections;
 using UnityEngine;
 
 namespace WaveFunctionCollapse
@@ -28,7 +29,7 @@ namespace WaveFunctionCollapse
         { 
             get
             {
-                CellConstraint[] constraints = new CellConstraint[_constraints.Length];
+                NativeArray<CellConstraint> constraints = new NativeArray<CellConstraint>(_constraints.Length, Allocator.TempJob);
 
                 for(int i = 0; i < constraints.Length; i++)
                     constraints[i] = _constraints[i].GetCellConstraint();

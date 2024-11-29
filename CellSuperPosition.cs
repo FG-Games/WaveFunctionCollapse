@@ -23,16 +23,16 @@ namespace WaveFunctionCollapse
 
         // --- Setup --- //
 
-        public CellSuperPosition(A address, CellConstraint superPositions) 
+        public CellSuperPosition(A address, CellConstraint constraint) 
         {
             _address = address;
-            Constraint = superPositions;
+            Constraint = constraint;
         }
 
-        public CellSuperPosition(A address, CellConstraint superPositions, int superPosIndex, int superOrIndex) 
+        public CellSuperPosition(A address, CellConstraint constraint, int superPosIndex, int superOrIndex) 
         {
             _address = address;
-            Constraint = superPositions;
+            Constraint = constraint;
             _collapsedPosIndex = superPosIndex;
             _collapsedOrBitmask = superOrIndex;
         }
@@ -145,7 +145,6 @@ namespace WaveFunctionCollapse
 
             int previousEntropy = Entropy;
             Constraint.Intersection(constraint);
-            constraint.Dispose();
 
             if(Constraint.Count() == 0)
                     UnityEngine.Debug.LogError("No collapse possible at " + Address);
