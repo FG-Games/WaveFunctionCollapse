@@ -4,11 +4,21 @@ namespace WaveFunctionCollapse
 {
     public struct CellConstraint : IDisposable
     {         
-        public SuperPosition[] SuperPositions;
+        private SuperPosition[] _superPositions;
 
         public CellConstraint(SuperPosition[] superPositions)
         {
-            SuperPositions = superPositions;
+            _superPositions = superPositions;
+        }
+
+        public CellConstraint Copy()
+        {
+            SuperPosition[] superPositionsCopy = new SuperPosition[_superPositions.Length];
+
+            for (int i = 0; i < superPositionsCopy.Length; i ++)
+                superPositionsCopy[i] = _superPositions[i];
+
+            return new CellConstraint(superPositionsCopy);
         }
 
 
@@ -16,14 +26,14 @@ namespace WaveFunctionCollapse
 
         public int Length()
         {
-            return SuperPositions.Length;
+            return _superPositions.Length;
         }
 
         public int Count()
         {
             int count = 0;
 
-            for (int i = 0; i < SuperPositions.Length; i ++)
+            for (int i = 0; i < _superPositions.Length; i ++)
                 if(GetSuperPosition(i).Possible())
                     count ++;
 
@@ -34,7 +44,7 @@ namespace WaveFunctionCollapse
         {
             int entropy = 0;
 
-            for (int i = 0; i < SuperPositions.Length; i ++)
+            for (int i = 0; i < _superPositions.Length; i ++)
                 entropy += GetSuperPosition(i).Orientations.Count();
 
             return entropy;
@@ -45,35 +55,30 @@ namespace WaveFunctionCollapse
 
         public SuperPosition GetSuperPosition(int index)
         {
-            return SuperPositions[index];
+            return _superPositions[index];
         }
-
-        public void SetSuperPosition(int index, SuperPosition superPosition)
-        {
-            SuperPositions[index] = superPosition;
-        }        
 
         public SuperPosition GetPossiblePosition(int possibleIndex)
         {
             int counter = -1;
 
-            for (int i = 0; i < SuperPositions.Length; i ++)
+            for (int i = 0; i < _superPositions.Length; i ++)
             {
-                if(SuperPositions[i].Possible())
+                if(_superPositions[i].Possible())
                 {
                     counter ++;
 
                     if(possibleIndex == counter)
-                        return SuperPositions[i];
+                        return _superPositions[i];
                 }
             }
 
             return default(SuperPosition);
         }
 
-        public SuperOrientation Orientations(int index)
+        public SuperOrientation Orientations(int possibleIndex)
         {
-            return GetPossiblePosition(index).Orientations;
+            return GetPossiblePosition(possibleIndex).Orientations;
         }
 
         public void Dispose()
@@ -84,86 +89,22 @@ namespace WaveFunctionCollapse
 
         // --- Operations --- //
 
-        public CellConstraint Add(CellConstraint constraint)
+        public void Add(CellConstraint constraint)
         {
-            SuperPosition[] mergedConstraint = new SuperPosition[SuperPositions.Length];
-
-            for (int i = 0; i < SuperPositions.Length; i ++)
-                mergedConstraint[i] = SuperPositions[i].Union(constraint.GetSuperPosition(i));
-
-            return new CellConstraint(mergedConstraint);
+            for (int i = 0; i < _superPositions.Length; i ++)
+                _superPositions[i].Union(constraint.GetSuperPosition(i));
         }
 
-        public CellConstraint Rotate(int rotation)
+        public void Rotate(int rotation)
         {
-            SuperPosition[] offsetSuperPositions = new SuperPosition[SuperPositions.Length];
-
-            for (int i = 0; i < SuperPositions.Length; i ++)
-                offsetSuperPositions[i] = SuperPositions[i].Rotate(rotation);
-
-            return new CellConstraint(offsetSuperPositions);
-        }
-    }
-
-    [Serializable]
-    public struct CellConstraintSet : IDisposable
-    {
-        private CellConstraint[] _constraints;
-
-        public CellConstraintSet(CellConstraint[] cellConstraints)
-        {
-            _constraints = cellConstraints;
+            for (int i = 0; i < _superPositions.Length; i ++)
+                _superPositions[i].Rotate(rotation);
         }
 
-
-        // --- Basic Access --- //
-
-        public int Length()
+        public void Intersection(CellConstraint constraint)
         {
-            return _constraints.Length;
-        }
-
-        public CellConstraint GetCellConstraint(int index)
-        {
-            return _constraints[index];
-        }
-
-        public void SetCellConstraint(int index, CellConstraint cellConstraint)
-        {
-            _constraints[index] = cellConstraint;
-        }
-
-        public void Dispose()
-        {
-            // Dispose native array here
-        }
-
-
-        // --- Operations --- //
-
-        public CellConstraintSet Add(CellConstraintSet addition)
-        {
-            CellConstraint[] addedSet = new CellConstraint[_constraints.Length];
-
-            for(int i = 0; i < _constraints.Length; i++)
-                addedSet[i] = _constraints[i].Add(addition.GetCellConstraint(i));
-
-            return new CellConstraintSet(addedSet);
-        }
-
-        public CellConstraintSet Rotate(int rotation)
-        {
-            CellConstraint[] rotatedSet = new CellConstraint[_constraints.Length];
-
-            for (int i = 0; i < _constraints.Length; i ++)
-                rotatedSet[i] = _constraints[addRotations(rotation, i)].Rotate(rotation);
-
-            return new CellConstraintSet(rotatedSet);
-        }
-
-        private int addRotations(int rotationA, int rotationB)
-        {
-            return (rotationA + rotationB) % _constraints.Length;
+            for (int i = 0; i < _superPositions.Length; i ++)
+               _superPositions[i].Intersection(constraint.GetSuperPosition(i));
         }
     }
 }

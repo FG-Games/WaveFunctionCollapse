@@ -98,12 +98,14 @@ namespace WaveFunctionCollapse
             
             // Constraint adjacent cells and check for changes in entropy
             for (byte side = 0; side < adjacentCSP.Length; side ++)
-            {                
+            {
                 if (adjacentCSP.IsValid(side))
                     adjacentCSP.GetCell(side).AddConstraint(_combinedConstraints.GetCellConstraint(side), out adjacentEntropyChange[side]);
                 else
                     adjacentEntropyChange[side] = false;
             }
+
+            _combinedConstraints.Dispose();
 
             // Constraint adjacent cells of all adjacent cells, had a change in entropy
             for (byte side = 0; side < adjacentEntropyChange.Length; side ++)

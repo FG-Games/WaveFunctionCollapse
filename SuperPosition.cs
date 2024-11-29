@@ -23,19 +23,19 @@ namespace WaveFunctionCollapse
 
         // --- Operations --- //
 
-        public SuperPosition Union(SuperPosition reference)
+        public void Union(SuperPosition reference)
         {
-            return new SuperPosition(ModuleIndex, Orientations.Union(reference.Orientations));
+            Orientations.Union(reference.Orientations);
         }
 
-        public SuperPosition Intersection(SuperPosition reference)
+        public void Rotate(int rotation)
         {
-            return new SuperPosition(ModuleIndex, Orientations.Intersection(reference.Orientations));
+            Orientations.Rotate(rotation);
         }
 
-        public SuperPosition Rotate(int rotation)
+        public void Intersection(SuperPosition reference)
         {
-            return new SuperPosition (ModuleIndex, Orientations.Rotate(rotation));
+            Orientations.Intersection(reference.Orientations);
         }
     }
 }

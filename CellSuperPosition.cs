@@ -51,7 +51,7 @@ namespace WaveFunctionCollapse
 
         public void CollapseToModule (int moduleIndex, System.Random random)
         {
-            if(Constraint.GetSuperPosition(moduleIndex).Possible())
+            if(Constraint.GetSuperPosition(moduleIndex).Possible()) // THIS IS SUPER DANGEROUS AS THER INPUT IS A DIRECT INDEX AND NOT A POSSIBLE
             {
                 setCollapsedPosition(moduleIndex);
                 setCollapsedOrientation(random.Next(0, maxOrientations(_collapsedPosIndex)));
@@ -90,27 +90,6 @@ namespace WaveFunctionCollapse
 
 
         // --- Constraints --- //
-        
-        public void AddConstraint(CellConstraint constraint, out bool entropyChange)
-        {
-            // Adds constraint to SuperPositions
-            if(Collapsed)
-            {
-                entropyChange = false;
-                return;
-            }
-
-            int previousEntropy = Entropy;
-
-            // Go through SuperPosition and check for common States / intersections
-            for (int i = 0; i < Constraint.Length(); i ++)
-                Constraint.SetSuperPosition(i, Constraint.GetSuperPosition(i).Intersection(constraint.GetSuperPosition(i)));
-
-            if(Constraint.Count() == 0)
-                    UnityEngine.Debug.LogError("No collapse possible at " + Address);
-
-            entropyChange = Entropy != previousEntropy;
-        }
 
         public CellConstraintSet CombinedConstraints (CellConstraintSet[] constraintSets)
         {
@@ -119,35 +98,59 @@ namespace WaveFunctionCollapse
             if(Collapsed)
             {
                 CollapsedPosition collapsedPosition = GetCollapsedPosition;
-                CellConstraintSet cellConstraintSet = constraintSets[collapsedPosition.ModuleIndex];
-                return cellConstraintSet.Rotate(collapsedPosition.Orientation);
+                CellConstraintSet cellConstraintSet = constraintSets[collapsedPosition.ModuleIndex].Copy();
+                cellConstraintSet.Rotate(collapsedPosition.Orientation);
+                return cellConstraintSet;
             }
             else
             {
-                CellConstraintSet combinedConstraints = SuperConstraints(Constraint.GetPossiblePosition(0));
+                CellConstraintSet combinedConstraints = getSuperConstraints(Constraint.GetPossiblePosition(0));
 
                 for (int i = 1; i < Constraint.Count(); i++)
-                    combinedConstraints = combinedConstraints.Add(SuperConstraints(Constraint.GetPossiblePosition(i)));
+                {
+                    CellConstraintSet superConstraints = getSuperConstraints(Constraint.GetPossiblePosition(i));
+                    combinedConstraints.Add(superConstraints);
+                    superConstraints.Dispose();
+                }
 
                 return combinedConstraints;
             }
 
-            CellConstraintSet SuperConstraints(SuperPosition superPosition)
+            CellConstraintSet getSuperConstraints(SuperPosition superPosition)
             {
                 // Combine module constraints of all possible orientations
-                CellConstraintSet superConstraints = rotatedContraints_S(superPosition, 0);
+                CellConstraintSet superConstraints = getRotatedContraints(superPosition, 0);
 
                 for (int i = 1; i < superPosition.Orientations.Count(); i ++)
-                    superConstraints = superConstraints.Add(rotatedContraints_S(superPosition, i));
+                {
+                    CellConstraintSet rotatedConstrainst = getRotatedContraints(superPosition, i);
+                    superConstraints.Add(rotatedConstrainst);
+                    rotatedConstrainst.Dispose();
+                }
 
                 return superConstraints;
             }
 
-            CellConstraintSet rotatedContraints_S(SuperPosition superPosition, int i)
+            CellConstraintSet getRotatedContraints(SuperPosition superPosition, int i)
             {
-                CellConstraintSet cellConstraintSet = constraintSets[superPosition.ModuleIndex];
-                return cellConstraintSet.Rotate(superPosition.Orientations.GetOrientation(i));
+                CellConstraintSet cellConstraintSet = constraintSets[superPosition.ModuleIndex].Copy();
+                cellConstraintSet.Rotate(superPosition.Orientations.GetOrientation(i));
+                return cellConstraintSet;
             }
+        }
+
+        public void AddConstraint(CellConstraint constraint, out bool entropyChange)
+        {
+            // Adds constraint to SuperPositions
+
+            int previousEntropy = Entropy;
+            Constraint.Intersection(constraint);
+            constraint.Dispose();
+
+            if(Constraint.Count() == 0)
+                    UnityEngine.Debug.LogError("No collapse possible at " + Address);
+
+            entropyChange = Entropy != previousEntropy;
         }
 
 

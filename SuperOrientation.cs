@@ -74,19 +74,19 @@ namespace WaveFunctionCollapse
 
         // --- Operations --- //
 
-        public SuperOrientation Union(SuperOrientation superOrientation)
+        public void Union(SuperOrientation superOrientation)
         {
-            return new SuperOrientation(Bitmask | superOrientation.Bitmask);
+            Bitmask |= superOrientation.Bitmask;
         }
 
-        public SuperOrientation Intersection(SuperOrientation superOrientation)
+        public void Intersection(SuperOrientation superOrientation)
         {
-            return new SuperOrientation(Bitmask & superOrientation.Bitmask);
+            Bitmask &= superOrientation.Bitmask;
         }
 
-        public SuperOrientation Rotate(int rotation)
+        public void Rotate(int rotation)
         {
-            return new SuperOrientation(((Bitmask << rotation) | (Bitmask >> (6 - rotation))) & 0x3F);
+            Bitmask = ((Bitmask << rotation) | (Bitmask >> (6 - rotation))) & 0x3F;
         }
     }
 }
