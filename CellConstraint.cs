@@ -1,19 +1,20 @@
 using System;
+using Unity.Collections;
 
 namespace WaveFunctionCollapse
 {
     public struct CellConstraint : IDisposable
     {         
-        private SuperPosition[] _superPositions;
+        private NativeArray<SuperPosition> _superPositions;
 
-        public CellConstraint(SuperPosition[] superPositions)
+        public CellConstraint(NativeArray<SuperPosition> superPositions)
         {
             _superPositions = superPositions;
         }
 
         public CellConstraint Copy()
         {
-            SuperPosition[] superPositionsCopy = new SuperPosition[_superPositions.Length];
+            NativeArray<SuperPosition> superPositionsCopy = new NativeArray<SuperPosition>(_superPositions.Length, Allocator.Temp);
 
             for (int i = 0; i < superPositionsCopy.Length; i ++)
                 superPositionsCopy[i] = _superPositions[i];
@@ -83,7 +84,8 @@ namespace WaveFunctionCollapse
 
         public void Dispose()
         {
-            // Dispose native array here
+            if(_superPositions.IsCreated)
+                _superPositions.Dispose();
         }
 
 
@@ -92,19 +94,19 @@ namespace WaveFunctionCollapse
         public void Add(CellConstraint constraint)
         {
             for (int i = 0; i < _superPositions.Length; i ++)
-                _superPositions[i].Union(constraint.GetSuperPosition(i));
+                _superPositions[i] = _superPositions[i].Union(constraint.GetSuperPosition(i));
         }
 
         public void Rotate(int rotation)
         {
             for (int i = 0; i < _superPositions.Length; i ++)
-                _superPositions[i].Rotate(rotation);
+                _superPositions[i] = _superPositions[i].Rotate(rotation);
         }
 
         public void Intersection(CellConstraint constraint)
         {
             for (int i = 0; i < _superPositions.Length; i ++)
-               _superPositions[i].Intersection(constraint.GetSuperPosition(i));
+               _superPositions[i] = _superPositions[i].Intersection(constraint.GetSuperPosition(i));
         }
     }
 }

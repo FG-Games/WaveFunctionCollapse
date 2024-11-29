@@ -1,4 +1,5 @@
 using UnityEngine;
+using Unity.Collections;
 
 namespace WaveFunctionCollapse
 {
@@ -25,7 +26,7 @@ namespace WaveFunctionCollapse
         {
             get
             {
-                SuperPosition[] superPositions = new SuperPosition[_modules.Length];
+                NativeArray<SuperPosition> superPositions = new NativeArray<SuperPosition>(_modules.Length, Allocator.Temp);
                 SuperOrientation superOrientation = _modules[0].AllOrientations;
 
                 for (int i = 0; i < superPositions.Length; i++)

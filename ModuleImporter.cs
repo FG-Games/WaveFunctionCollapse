@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using Unity.Collections;
 
 namespace WaveFunctionCollapse
 {
@@ -98,7 +99,7 @@ namespace WaveFunctionCollapse
 
         public CellConstraint GetCellConstraint()
         {
-            SuperPosition[] superPositions = new SuperPosition[_setLength];
+            NativeArray<SuperPosition> superPositions = new NativeArray<SuperPosition>(_setLength, Allocator.Temp);
 
             for(int i = 0; i < _setLength; i++)
                 superPositions[i] = new SuperPosition(i, new SuperOrientation(0));

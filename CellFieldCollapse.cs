@@ -62,9 +62,7 @@ namespace WaveFunctionCollapse
         public void InstantCollapseAll()
         {
             CollapseInitialCell();
-
-            while (!AllCellsCollapsed)
-                CollapseNext();
+            CollapseAll();
         }
 
         public void CollapseAll()
@@ -142,7 +140,9 @@ namespace WaveFunctionCollapse
             // DISPOSE OF ALL UNMANAGED MEMORY IN _cspField AND _cellConstraintSets
             _cspField.Dispose();
             _entropyHeap = null;
-            _cellConstraintSets = null;
+
+            for(int i = 0; i < _cellConstraintSets.Length; i++)
+                _cellConstraintSets[i].Dispose();            
         }
     }
 
