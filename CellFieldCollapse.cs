@@ -139,7 +139,6 @@ namespace WaveFunctionCollapse
 
         public virtual void Dispose()
         {
-            // DISPOSE OF ALL UNMANAGED MEMORY IN _cspField AND _cellConstraintSets
             _cspField.Dispose();
             _entropyHeap = null;
             _cellConstraintSets = null;

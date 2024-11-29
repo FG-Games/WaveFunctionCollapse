@@ -39,7 +39,7 @@ namespace WaveFunctionCollapse
 
         public void Dispose()
         {
-            // Dispose native array here and all nested native arrays
+            // Dispose _constraints native array here and all nested native arrays
         }
 
 

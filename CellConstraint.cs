@@ -83,7 +83,7 @@ namespace WaveFunctionCollapse
 
         public void Dispose()
         {
-            // Dispose native array here
+            // Dispose _superPositions native array here
         }
 
 

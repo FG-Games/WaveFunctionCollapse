@@ -1,10 +1,11 @@
 using System;
 using UnityEngine;
+using UnityEngine.Animations;
 
 namespace WaveFunctionCollapse
 {
     [Serializable]
-    public class CellSuperPosition<A> : IHeapItem<CellSuperPosition<A>>
+    public class CellSuperPosition<A> : IHeapItem<CellSuperPosition<A>>, IDisposable
     {
 
         // --- CSP Field
@@ -51,7 +52,7 @@ namespace WaveFunctionCollapse
 
         public void CollapseToModule (int moduleIndex, System.Random random)
         {
-            if(Constraint.GetSuperPosition(moduleIndex).Possible()) // THIS IS SUPER DANGEROUS AS THER INPUT IS A DIRECT INDEX AND NOT A POSSIBLE
+            if(Constraint.GetSuperPosition(moduleIndex).Possible()) // THIS EXPECTS module index == possible index
             {
                 setCollapsedPosition(moduleIndex);
                 setCollapsedOrientation(random.Next(0, maxOrientations(_collapsedPosIndex)));
@@ -145,7 +146,6 @@ namespace WaveFunctionCollapse
 
             int previousEntropy = Entropy;
             Constraint.Intersection(constraint);
-            constraint.Dispose();
 
             if(Constraint.Count() == 0)
                     UnityEngine.Debug.LogError("No collapse possible at " + Address);
@@ -153,6 +153,10 @@ namespace WaveFunctionCollapse
             entropyChange = Entropy != previousEntropy;
         }
 
+        public void Dispose()
+        {
+            Constraint.Dispose();
+        }
 
         // --- Heap --- //
 
