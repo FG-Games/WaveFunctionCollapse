@@ -99,9 +99,9 @@ namespace WaveFunctionCollapse
             if(Collapsed)
             {
                 CollapsedPosition collapsedPosition = GetCollapsedPosition;
-                CellConstraintSet cellConstraintSet = constraintSets[collapsedPosition.ModuleIndex].Copy();
-                cellConstraintSet.Rotate(collapsedPosition.Orientation);
-                return cellConstraintSet;
+                CellConstraintSet constraintSetCopy = constraintSets[collapsedPosition.ModuleIndex].Copy();
+                constraintSetCopy.Rotate(collapsedPosition.Orientation);
+                return constraintSetCopy;
             }
             else
             {
@@ -132,9 +132,9 @@ namespace WaveFunctionCollapse
 
             CellConstraintSet getRotatedContraints(SuperPosition superPosition, int i)
             {
-                CellConstraintSet cellConstraintSet = constraintSets[superPosition.ModuleIndex].Copy();
-                cellConstraintSet.Rotate(superPosition.Orientations.GetOrientation(i));
-                return cellConstraintSet;
+                CellConstraintSet constraintSetCopy = constraintSets[superPosition.ModuleIndex].Copy();
+                constraintSetCopy.Rotate(superPosition.Orientations.GetOrientation(i));
+                return constraintSetCopy;
             }
         }
 

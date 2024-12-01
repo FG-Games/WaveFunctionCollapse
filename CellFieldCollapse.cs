@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Concurrent;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace WaveFunctionCollapse
@@ -19,7 +17,7 @@ namespace WaveFunctionCollapse
         // --- Modules --- //
 
         public ModuleSet<T> ModuleSet { get; private set; }
-        protected CellConstraintSet[] _cellConstraintSets;
+        private CellConstraintSet[] _cellConstraintSets;
 
         public CellFieldCollapse(int size, int seed, ModuleSet<T> moduleSet)
         {
@@ -105,7 +103,7 @@ namespace WaveFunctionCollapse
                     }
                 }
             }
-        } 
+        }
 
         private void addToEntropyHeap(CellSuperPosition<A> csp)
         {
