@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Concurrent;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace WaveFunctionCollapse
@@ -8,8 +10,9 @@ namespace WaveFunctionCollapse
     {
         // --- CSP field --- //
         public bool AllCellsCollapsed => _entropyHeap == null || _entropyHeap.Count == 0;
-        protected Heap<CellSuperPosition<A>> _entropyHeap;
         protected abstract ICSPfield<A> _cspField { get; }
+        protected abstract void createCSPfield(int size);
+        protected Heap<CellSuperPosition<A>> _entropyHeap;        
         private System.Random _random;
 
 
@@ -21,12 +24,12 @@ namespace WaveFunctionCollapse
         public CellFieldCollapse(int size, int seed, ModuleSet<T> moduleSet)
         {
             ModuleSet = moduleSet;
-            
+
+            createCSPfield(size);
+            _entropyHeap = new Heap<CellSuperPosition<A>>(_cspField.Count);            
             _random = new System.Random(seed);
             _cellConstraintSets = moduleSet.CellConstraintSets;
         }
-
-        public CellSuperPosition<A> GetCSP(A address) => _cspField.GetCSP(address);
 
 
         // --- Collapse Control --- //
@@ -77,7 +80,7 @@ namespace WaveFunctionCollapse
         }
 
 
-        // --- Propagate Constraints --- //     
+        // --- Propagate Constraints --- //
 
         public void ConstraintAdjacentCells(A address)
         {
@@ -102,13 +105,10 @@ namespace WaveFunctionCollapse
                     }
                 }
             }
-        }
+        } 
 
         private void addToEntropyHeap(CellSuperPosition<A> csp)
         {
-            if(_entropyHeap == null)
-                _entropyHeap = new Heap<CellSuperPosition<A>>(_cspField.Count);
-
             if(csp.Collapsed)
                 Debug.LogError("Can't register collapsed cell as SuperPosition");
             else if(csp.HeapIndex == -1)
