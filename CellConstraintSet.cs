@@ -3,7 +3,7 @@ using System;
 namespace WaveFunctionCollapse
 {
     [Serializable]
-    public struct CellConstraintSet : IDisposable
+    public struct CellConstraintSet
     {
         private CellConstraint[] _constraints;
         private int _orientation;
@@ -35,11 +35,6 @@ namespace WaveFunctionCollapse
         public CellConstraint GetCellConstraint(int index)
         {
             return _constraints[addRotations(_orientation, index)];
-        }
-
-        public void Dispose()
-        {
-            // Dispose _constraints native array here and all nested native arrays
         }
 
 

@@ -2,7 +2,7 @@ using System;
 
 namespace WaveFunctionCollapse
 {
-    public struct CellConstraint : IDisposable
+    public struct CellConstraint
     {         
         private SuperPosition[] _superPositions;
 
@@ -79,11 +79,6 @@ namespace WaveFunctionCollapse
         public SuperOrientation Orientations(int possibleIndex)
         {
             return GetPossiblePosition(possibleIndex).Orientations;
-        }
-
-        public void Dispose()
-        {
-            // Dispose _superPositions native array here
         }
 
 

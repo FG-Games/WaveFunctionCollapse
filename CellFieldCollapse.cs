@@ -17,15 +17,11 @@ namespace WaveFunctionCollapse
 
         public ModuleSet<T> ModuleSet { get; private set; }
         protected CellConstraintSet[] _cellConstraintSets;
-        protected CellConstraintSet _combinedConstraints;
 
         public CellFieldCollapse(int size, int seed, ModuleSet<T> moduleSet)
         {
             ModuleSet = moduleSet;
-
-            // CellConstraint.SetCellConstraintLength(moduleSet.Modules.Length);
-            // CellConstraintSet.SetCellConstraintSetLength(6); // TMP
-
+            
             _random = new System.Random(seed);
             _cellConstraintSets = moduleSet.CellConstraintSets;
         }
@@ -62,12 +58,10 @@ namespace WaveFunctionCollapse
         public void InstantCollapseAll()
         {
             CollapseInitialCell();
-
-            while (!AllCellsCollapsed)
-                CollapseNext();
+            CollapseRest();
         }
 
-        public void CollapseAll()
+        public void CollapseRest()
         {
             while (!AllCellsCollapsed)
                 CollapseNext();
@@ -87,33 +81,25 @@ namespace WaveFunctionCollapse
 
         public void ConstraintAdjacentCells(A address)
         {
-            bool[] adjacentEntropyChange;
-            IAdjacentCell<CellSuperPosition<A>> adjacentCSP;
-
             // The constraints of adjacent cells recursively
             CellSuperPosition<A> csp = _cspField.GetCSP(address);
-            adjacentCSP = _cspField.GetAdjacentCSP(address);
-            adjacentEntropyChange = new bool[adjacentCSP.Length];
-            _combinedConstraints = csp.CombinedConstraints(_cellConstraintSets);
+            IAdjacentCell<CellSuperPosition<A>> adjacentCSP = _cspField.GetAdjacentCSP(address);
+            CellConstraintSet _combinedConstraints = csp.CombinedConstraints(_cellConstraintSets);
             
             // Constraint adjacent cells and check for changes in entropy
             for (byte side = 0; side < adjacentCSP.Length; side ++)
             {
+                bool entropyChange = false;
+
                 if (adjacentCSP.IsValid(side))
-                    adjacentCSP.GetCell(side).AddConstraint(_combinedConstraints.GetCellConstraint(side), out adjacentEntropyChange[side]);
-                else
-                    adjacentEntropyChange[side] = false;
-            }
-
-            _combinedConstraints.Dispose();
-
-            // Constraint adjacent cells of all adjacent cells, had a change in entropy
-            for (byte side = 0; side < adjacentEntropyChange.Length; side ++)
-            {
-                if(adjacentEntropyChange[side])
                 {
-                    addToEntropyHeap(adjacentCSP.GetCell(side));
-                    ConstraintAdjacentCells(adjacentCSP.GetCell(side).Address);
+                    adjacentCSP.GetCell(side).AddConstraint(_combinedConstraints.GetCellConstraint(side), out entropyChange);
+
+                    if(entropyChange)
+                    {
+                        addToEntropyHeap(adjacentCSP.GetCell(side));
+                        ConstraintAdjacentCells(adjacentCSP.GetCell(side).Address);
+                    }
                 }
             }
         }

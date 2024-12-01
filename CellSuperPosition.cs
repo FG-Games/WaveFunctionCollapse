@@ -5,7 +5,7 @@ using UnityEngine.Animations;
 namespace WaveFunctionCollapse
 {
     [Serializable]
-    public class CellSuperPosition<A> : IHeapItem<CellSuperPosition<A>>, IDisposable
+    public class CellSuperPosition<A> : IHeapItem<CellSuperPosition<A>>
     {
 
         // --- CSP Field
@@ -111,7 +111,6 @@ namespace WaveFunctionCollapse
                 {
                     CellConstraintSet superConstraints = getSuperConstraints(Constraint.GetPossiblePosition(i));
                     combinedConstraints.Add(superConstraints);
-                    superConstraints.Dispose();
                 }
 
                 return combinedConstraints;
@@ -126,7 +125,6 @@ namespace WaveFunctionCollapse
                 {
                     CellConstraintSet rotatedConstrainst = getRotatedContraints(superPosition, i);
                     superConstraints.Add(rotatedConstrainst);
-                    rotatedConstrainst.Dispose();
                 }
 
                 return superConstraints;
@@ -142,21 +140,15 @@ namespace WaveFunctionCollapse
 
         public void AddConstraint(CellConstraint constraint, out bool entropyChange)
         {
-            // Adds constraint to SuperPositions
-
             int previousEntropy = Entropy;
             Constraint.Intersection(constraint);
 
             if(Constraint.Count() == 0)
-                    UnityEngine.Debug.LogError("No collapse possible at " + Address);
+                UnityEngine.Debug.LogError("No collapse possible at " + Address);
 
             entropyChange = Entropy != previousEntropy;
         }
 
-        public void Dispose()
-        {
-            Constraint.Dispose();
-        }
 
         // --- Heap --- //
 
