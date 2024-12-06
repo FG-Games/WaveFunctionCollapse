@@ -92,7 +92,7 @@ namespace WaveFunctionCollapse
 
         // --- Constraints --- //
 
-        public CellConstraintSet CombinedConstraints (CellConstraintSet[] constraintSets)
+        public CellConstraintSet GetConstraintSet(CellConstraintSet[] constraintSets)
         {
             // Creates CellConstraintSet from Superposition
 
@@ -172,11 +172,10 @@ namespace WaveFunctionCollapse
         }
     }
 
-    public interface IAdjacentCell<T> // THIS IS EXCLUSIVELY USED FOR CSPs.. 
+    public interface IAdjacentCell<A>
     {
         int Length { get; }
-        bool IsValid(int i); // THIS KINDA OBSCURES THE ANSWER ON WHETEHR OR NOT THE THING IS COLLAPSED
-        T GetCell(int i);
-        void SetCell(int i, T value);
+        bool IsCollapsed(int i);
+        CellSuperPosition<A> GetCell(int i);
     }
 }

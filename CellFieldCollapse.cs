@@ -84,17 +84,17 @@ namespace WaveFunctionCollapse
         {
             // The constraints of adjacent cells recursively
             CellSuperPosition<A> csp = _cspField.GetCSP(address);
-            IAdjacentCell<CellSuperPosition<A>> adjacentCSP = _cspField.GetAdjacentCSP(address);
-            CellConstraintSet _combinedConstraints = csp.CombinedConstraints(_cellConstraintSets);
+            CellConstraintSet constraintSet = csp.GetConstraintSet(_cellConstraintSets);
+            IAdjacentCell<A> adjacentCSP = _cspField.GetAdjacentCSP(address);            
             
             // Constraint adjacent cells and check for changes in entropy
             for (byte side = 0; side < adjacentCSP.Length; side ++)
             {
                 bool entropyChange = false;
 
-                if (adjacentCSP.IsValid(side))
+                if (adjacentCSP.IsCollapsed(side))
                 {
-                    adjacentCSP.GetCell(side).AddConstraint(_combinedConstraints.GetCellConstraint(side), out entropyChange);
+                    adjacentCSP.GetCell(side).AddConstraint(constraintSet.GetCellConstraint(side), out entropyChange);
 
                     if(entropyChange)
                     {
@@ -133,6 +133,6 @@ namespace WaveFunctionCollapse
     {
         int Count { get; }
         CellSuperPosition<A> GetCSP(A a);
-        IAdjacentCell<CellSuperPosition<A>> GetAdjacentCSP(A a);
+        IAdjacentCell<A> GetAdjacentCSP(A a);
     }
 }
