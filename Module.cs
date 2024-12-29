@@ -93,4 +93,81 @@ namespace WaveFunctionCollapse
     {
         public abstract int Mask(int orienation);
     }
+
+    [Serializable]
+    public struct SuperModuleArray<T>
+        where T : Module<T>
+    {
+        public SuperModule<T>[] SuperModules;
+        [SerializeField] int _setLength;
+
+        public SuperModuleArray(SuperModule<T>[] superModules, int setLengh)
+        {
+            SuperModules = superModules;
+            _setLength = setLengh;
+        }
+
+        public CellConstraint GetCellConstraint()
+        {
+            SuperPosition[] superPositions = new SuperPosition[_setLength];
+
+            for(int i = 0; i < _setLength; i++)
+                superPositions[i] = new SuperPosition(i, new SuperOrientation(0));
+
+            for(int i = 0; i < SuperModules.Length; i++)
+                superPositions[SuperModules[i].Module.Index] = SuperModules[i].SuperPosition;
+
+            return new CellConstraint(superPositions);
+        }
+    }
+
+    [Serializable]
+    public struct SuperModule<T>
+        where T : Module<T>
+    {
+        public T Module;
+        public SuperModuleOrientations Orientations;
+        public SuperPosition SuperPosition => new SuperPosition(Module.Index, Orientations.SuperOrientation);
+
+        public SuperModule(T module, SuperModuleOrientations orientations)
+        {
+            Module = module;
+            Orientations = orientations;
+        }
+    }
+
+    [Serializable]
+    public struct SuperModuleOrientations
+    {
+        [SerializeField] private int _orientationBitmask;
+        public SuperModuleOrientations(int bitmask) => _orientationBitmask = bitmask;
+        public void SetOrientation (int index) => _orientationBitmask |= (1 << index);
+        public bool isValid { get => _orientationBitmask > 0; }
+        public SuperOrientation SuperOrientation => new SuperOrientation(_orientationBitmask);
+
+        
+        // --- Operators --- //
+
+        public static bool operator == (SuperModuleOrientations a, SuperModuleOrientations b) => a._orientationBitmask == b._orientationBitmask;
+        public static bool operator != (SuperModuleOrientations a, SuperModuleOrientations b) => a._orientationBitmask != b._orientationBitmask;
+
+        public override bool Equals(object obj)
+        {
+            if (!(obj is SuperModuleOrientations))
+                return false;
+
+            var other = (SuperModuleOrientations)obj;
+            return this == other;
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 17;
+                hash = hash * 31 + _orientationBitmask.GetHashCode();
+                return hash;
+            }
+        }
+    }
 }
