@@ -66,7 +66,7 @@ namespace WaveFunctionCollapse
                 {
                     if (feature == adjacentModule.FeaturesReflected[adjacentSide])
                     {
-                        int adjacentOrientation = (adjacentSide - side) % adjacentModule.Sides;
+                        int adjacentOrientation = (side - adjacentSide) % adjacentModule.Sides;
 
                         if (adjacentOrientation < 0)
                             adjacentOrientation += adjacentModule.Sides;

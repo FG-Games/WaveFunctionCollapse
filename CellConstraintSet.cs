@@ -48,7 +48,7 @@ namespace WaveFunctionCollapse
 
         public void Rotate(int rotation)
         {
-            _orientation = addRotations(_orientation, rotation);
+            _orientation = subtractRotations(_orientation, rotation);
 
             for (int i = 0; i < _constraints.Length; i ++)
                 GetCellConstraint(i).Rotate(rotation);
@@ -57,6 +57,16 @@ namespace WaveFunctionCollapse
         private int addRotations(int rotationA, int rotationB)
         {
             return (rotationA + rotationB) % _constraints.Length;
+        }
+
+        private int subtractRotations(int rotationA, int rotationB)
+        {
+            int addedRotations = rotationA - rotationB;
+
+            if (addedRotations < 0)
+                addedRotations += _constraints.Length;
+
+            return addedRotations;
         }
     }
 }
