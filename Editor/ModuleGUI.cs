@@ -96,8 +96,6 @@ namespace WaveFunctionCollapse
     [CustomPropertyDrawer(typeof(SuperModule<>))]
     public class SuperModuleDrawer : PropertyDrawer
     {
-        private static Color s_gray = new Color(0.4f, 0.4f, 0.4f, 1);
-
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             EditorGUI.BeginProperty(position, label, property);
@@ -121,15 +119,15 @@ namespace WaveFunctionCollapse
 
             while (orientations > 0)
             {
-                    // Get smallest rotation / the position of the lowest set bit
-                    orientation = (int)Math.Log(orientations & -orientations, 2);
-                    orientationsString += orientation.ToString();
+                // Get smallest rotation / the position of the lowest set bit
+                orientation = (int)Math.Log(orientations & -orientations, 2);
+                orientationsString += orientation.ToString();
 
-                    // Clear the lowest set bit
-                    orientations &= (orientations - 1);
+                // Clear the lowest set bit
+                orientations &= (orientations - 1);
 
-                    if(orientations > 0)
-                        orientationsString += ", ";
+                if (orientations > 0)
+                    orientationsString += ", ";
             }
 
             EditorGUI.LabelField(position, constraintProperty.objectReferenceValue != null ? constraintProperty.objectReferenceValue.name + " [ " + orientationsString + " ]" : "None");

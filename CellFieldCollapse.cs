@@ -11,7 +11,7 @@ namespace WaveFunctionCollapse
         protected abstract ICSPfield<A> _cspField { get; }
         protected abstract void createCSPfield(int size);
         protected Heap<CellSuperPosition<A>> _entropyHeap;        
-        private System.Random _random;
+        protected System.Random _random;
 
 
         // --- Modules --- //
