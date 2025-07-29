@@ -1,3 +1,9 @@
+/// <summary>
+/// The CellFieldCollapse class manages the collapse process of a CSPField.
+/// It serves as the primary driver of the Wave Function Collapse algorithm,
+/// and also acts as the basis for a debugging tool within the WFC setup.
+/// </summary>
+
 using System;
 using UnityEngine;
 
@@ -82,7 +88,7 @@ namespace WaveFunctionCollapse
 
         public void ConstraintAdjacentCells(A address)
         {
-            // The constraints of adjacent cells recursively
+            // Constraints of adjacent cells recursively
             CellSuperPosition<A> csp = _cspField.GetCSP(address);
             CellConstraintSet constraintSet = csp.GetConstraintSet(_cellConstraintSets);
             IAdjacentCell<A> adjacentCSP = _cspField.GetAdjacentCSP(address);            

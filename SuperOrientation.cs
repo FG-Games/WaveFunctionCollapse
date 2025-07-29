@@ -1,3 +1,11 @@
+/// <summary>
+/// A SuperOrientation represents a set of orientations. 
+/// Since any 2D or 3D tessellation has at most six possible orientations,
+/// and SuperOrientation operations are limited to boolean logic, orientations are stored as bitmasks.
+/// It is recommended to provide a mapping from integers to actual rotation representations,
+/// such as Quaternions, to interpret the encoded orientations.
+/// </summary>
+
 using System;
 
 namespace WaveFunctionCollapse

@@ -1,3 +1,11 @@
+/// <summary>
+/// A CellConstraint represents a set of Superpositions and functions both as a constraint
+/// and as a superposition of Modules.
+/// During the CSPField collapse, boolean operations such as union and intersection
+/// are performed on these sets to create CellConstraints from CellSuperPositions 
+/// and add them to CellSuperpositions.
+/// </summary>
+
 using System;
 
 namespace WaveFunctionCollapse

@@ -1,6 +1,14 @@
+/// <summary>
+/// A CellSuperPosition (CSP) represents all possible Modules and their respective valid orientations
+/// at a specific position(<A>) within a CSPField.
+/// It is initialized from the MaxEntropyPosition of a ModuleSet and modified by applying CellConstraints.
+/// The reduction in possible states is tracked via an Entropy value.
+/// During the CSPField collapse process, the Entropy value is used to determine which CSP to collapse next.
+/// When a CSP is collapsed, it resolves to a single Module index and a single Orientation index.
+/// </summary>
+
 using System;
 using UnityEngine;
-using UnityEngine.Animations;
 
 namespace WaveFunctionCollapse
 {
@@ -24,13 +32,13 @@ namespace WaveFunctionCollapse
 
         // --- Setup --- //
 
-        public CellSuperPosition(A address, CellConstraint superPositions) 
+        public CellSuperPosition(A address, CellConstraint maxEntropyPosition) 
         {
             _address = address;
-            Constraint = superPositions;
+            Constraint = maxEntropyPosition;
         }
 
-        public CellSuperPosition(A address, CellConstraint superPositions, int superPosIndex, int superOrIndex) 
+        public CellSuperPosition(A address, CellConstraint superPositions, int superPosIndex, int superOrIndex) // Use this contructor to load partially collapsed CSP fields
         {
             _address = address;
             Constraint = superPositions;
@@ -52,7 +60,10 @@ namespace WaveFunctionCollapse
 
         public void CollapseToModule (int moduleIndex, System.Random random)
         {
-            if(Constraint.GetSuperPosition(moduleIndex).Possible()) // THIS EXPECTS module index == possible index
+            // This expects a MaxEntropyPosition or a the Superposition be uncontrainted,
+            // as the moduleindex is based on the full set of modules
+
+            if (Constraint.GetSuperPosition(moduleIndex).Possible())
             {
                 setCollapsedPosition(moduleIndex);
                 setCollapsedOrientation(random.Next(0, maxOrientations(_collapsedPosIndex)));

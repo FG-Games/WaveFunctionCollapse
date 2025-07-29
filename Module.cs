@@ -1,3 +1,26 @@
+/// <summary>
+/// A Module represents a tileable unit in the Wave Function Collapse system, 
+/// defining possible adjacent units and orientations.
+/// 
+/// The Module ScriptableObject is intended to store visual data, metadata, and logic that define your tile pattern.
+/// In the context of Wave Function Collapse, each Module provides a CellConstraintSet,
+/// which is necessary for initializing the collapse process in a CSPField.
+/// 
+/// A Module's CellConstraints are generated from Features, identified by string-based IDs.
+/// The current setup encodes each corner of a Module with one digit, 
+/// meaning each side is described by a pair of digits (e.g., 4 digits for a cube).
+/// The resulting Features, which represent side characteristics, are stored as bytes.
+/// 
+/// The ModuleImporter handles side compatibility testing between Modules,
+/// generates the corresponding CellConstraints, and assigns the resulting ConstraintSets 
+/// to their respective Modules.
+/// 
+/// Serializable versions of CellConstraint, Superposition, and SuperOrientation
+/// (used for storing data within the Module ScriptableObject)
+/// can be found at the bottom of this script.
+/// </summary>
+
+
 using System;
 using UnityEngine;
 
@@ -47,14 +70,7 @@ namespace WaveFunctionCollapse
 
         public virtual void SetFeatures()
         {
-            // Each Module is expected to provide a FeatureSized digit number as an ID.
-            // Each digit stands for a type of feature on each of the Module's corners,
-            // starting at the top going counter clockwise around the n-gon.
-            // As the program focusses on the sides of a n-gon and not its corners, 
-            // values are stored as pairs to represent the feature of a side of the n-gon.
-            // THERE SHOULD BE AN OPTION TO SET MULTIPLE DIGITS TO DEFINE A FEAUTIRE OTHERWISE YOU'RE LEFT WITH 10 
-
-            Clear();   
+            Clear();
             _features = new byte[Sides]; 
             _featuresReflected = new byte[Sides]; 
             _featureFlags = 0;

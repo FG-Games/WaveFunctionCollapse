@@ -1,3 +1,8 @@
+/// <summary>
+/// A CellConstraintSet represents the characteristic constraints that a Module or CellSuperPosition
+/// imposes on adjacent CellSuperPositions.
+/// </summary>
+
 using System;
 
 namespace WaveFunctionCollapse

@@ -1,3 +1,8 @@
+/// <summary>
+/// The ModuleImporter generates the ConstraintSets for a ModuleSet by providing side compatibility testing between Modules.
+/// It creates the corresponding CellConstraints and assigns the resulting ConstraintSets to their respective Modules.
+/// </summary>
+
 using System.Collections.Generic;
 using UnityEditor;
 
