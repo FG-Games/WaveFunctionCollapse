@@ -10,6 +10,10 @@ Modules represent congruent tessellation elements, each defined by user-provided
 Users specify a series of digits describing module characteristics (e.g., corners).
 This ID-based system does not analyze geometry or auto-generate feature data.
 
+This framework is actively used in a current project.
+You can see it in action here:
+👉 [Watch the demo](https://youtu.be/MdqOV0m7AYA)
+
 Key Points
 - Data-oriented design: Extensive use of structs for performance; groundwork laid for future optimization with Unity Native Arrays and multithreading.
 - Constraint logic: Boolean operations on CellConstraints and Superpositions allow flexible yet controlled tile adjacency.
