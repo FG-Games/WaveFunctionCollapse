@@ -28,7 +28,7 @@ Current Limitations
 Usage
 - Add this repository as a Git submodule in your Unity project.
 - Inherit from the base abstract classes to define your own Module, ModuleSet, and CSPFieldCollapse implementations.
-- Your CSPFieldCollapse subclass must provide a CSP field that implements ICSPField<A>, where A represents your address type (e.g., grid coordinates).
+- Your CSPFieldCollapse subclass must provide a CSP field that implements ICSPField with its own address type (e.g., grid coordinates).
 - This abstraction layer is the cost of supporting arbitrary tessellation types — from square grids to 3D lattices.
 
 Contributing
