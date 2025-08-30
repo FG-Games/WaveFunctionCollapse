@@ -1,9 +1,11 @@
 /// <summary>
-/// A CellConstraint represents a set of Superpositions and functions both as a constraint
-/// and as a superposition of Modules.
-/// During the CSPField collapse, boolean operations such as union and intersection
-/// are performed on these sets to create CellConstraints from CellSuperPositions 
-/// and add them to CellSuperpositions.
+/// A CellConstraint is a wrapper around a set of Superpositions. 
+/// It supports boolean operations such as union and intersection, allowing it to function 
+/// both as a constraint and as the internal representation of a CellSuperPosition.
+/// 
+/// During the CSPField collapse, these boolean operations are used to constrain neighboring 
+/// CellSuperPositions and, in turn, derive new CellConstraints (as CellConstraintSets). 
+/// This process enables the continuous propagation of the collapse.
 /// </summary>
 
 using System;

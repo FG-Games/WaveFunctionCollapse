@@ -16,7 +16,7 @@ namespace WaveFunctionCollapse
         public bool AllCellsCollapsed => _entropyHeap == null || _entropyHeap.Count == 0;
         protected abstract ICSPfield<A> _cspField { get; }
         protected abstract void createCSPfield(int size);
-        protected Heap<CellSuperPosition<A>> _entropyHeap;        
+        protected Heap<CellSuperPosition<A>> _entropyHeap;
         protected System.Random _random;
 
 
@@ -30,7 +30,7 @@ namespace WaveFunctionCollapse
             ModuleSet = moduleSet;
 
             createCSPfield(size);
-            _entropyHeap = new Heap<CellSuperPosition<A>>(_cspField.Count);            
+            _entropyHeap = new Heap<CellSuperPosition<A>>(_cspField.Count);
             _random = new System.Random(seed);
             _cellConstraintSets = moduleSet.CellConstraintSets;
         }
@@ -48,7 +48,7 @@ namespace WaveFunctionCollapse
 
         public void CollapseNext()
         {
-            if(AllCellsCollapsed)
+            if (AllCellsCollapsed)
                 return;
 
             CellSuperPosition<A> csp = _entropyHeap.RemoveFirst();
@@ -76,7 +76,7 @@ namespace WaveFunctionCollapse
 
         public void CollapseAt(A address, int moduleIndex)
         {
-            if(_cspField.GetCSP(address).Collapsed)
+            if (_cspField.GetCSP(address).Collapsed)
                 return;
 
             _cspField.GetCSP(address).CollapseToModule(moduleIndex, _random);
@@ -88,13 +88,13 @@ namespace WaveFunctionCollapse
 
         public void ConstraintAdjacentCells(A address)
         {
-            // Constraints of adjacent cells recursively
             CellSuperPosition<A> csp = _cspField.GetCSP(address);
             CellConstraintSet constraintSet = csp.GetConstraintSet(_cellConstraintSets);
-            IAdjacentCell<A> adjacentCSP = _cspField.GetAdjacentCSP(address);            
-            
+            IAdjacentCell<A> adjacentCSP = _cspField.GetAdjacentCSP(address);
+
             // Constraint adjacent cells and check for changes in entropy
-            for (byte side = 0; side < adjacentCSP.Length; side ++)
+
+            for (byte side = 0; side < adjacentCSP.Length; side++)
             {
                 bool entropyChange = false;
 
@@ -102,8 +102,10 @@ namespace WaveFunctionCollapse
                 {
                     adjacentCSP.GetCell(side).AddConstraint(constraintSet.GetCellConstraint(side), out entropyChange);
 
-                    if(entropyChange)
+                    if (entropyChange)
                     {
+                        // Constraints adjacent cells recursively
+
                         addToEntropyHeap(adjacentCSP.GetCell(side));
                         ConstraintAdjacentCells(adjacentCSP.GetCell(side).Address);
                     }
@@ -113,12 +115,12 @@ namespace WaveFunctionCollapse
 
         private void addToEntropyHeap(CellSuperPosition<A> csp)
         {
-            if(csp.Collapsed)
+            if (csp.Collapsed)
                 Debug.LogError("Can't register collapsed cell as SuperPosition");
-            else if(csp.HeapIndex == -1)
+            else if (csp.HeapIndex == -1)
                 Debug.LogWarning("CellSuperPosition has heap index of -1");
 
-            if(_entropyHeap.Contains(csp))
+            if (_entropyHeap.Contains(csp))
                 _entropyHeap.UpdateItem(csp);
             else
                 _entropyHeap.Add(csp);
@@ -135,10 +137,24 @@ namespace WaveFunctionCollapse
         }
     }
 
+    /// <summary>
+    /// The ICSPfield interface defines the contract for a CSPField that can be collapsed by a CellFieldCollapse.
+    /// It provides access to all CellSuperPositions in the field and their adjacency relationships.
+    /// The IAdjacentCell represents the neighboring context of a single CellSuperPosition in a CSPField.
+    /// It allows the CellFieldCollapse to remain tessellation-agnostic by exposing adjacency uniformly.
+    /// </summary>
+
     public interface ICSPfield<A> : IDisposable
     {
         int Count { get; }
         CellSuperPosition<A> GetCSP(A a);
         IAdjacentCell<A> GetAdjacentCSP(A a);
+    }
+    
+    public interface IAdjacentCell<A>
+    {
+        int Length { get; }
+        bool IsCollapsed(int i);
+        CellSuperPosition<A> GetCell(int i);
     }
 }

@@ -1,6 +1,14 @@
 /// <summary>
-/// A CellConstraintSet represents the characteristic constraints that a Module or CellSuperPosition
-/// imposes on adjacent CellSuperPositions.
+/// A CellConstraintSet represents the characteristic constraints that a Module or CellSuperPosition 
+/// imposes on its neighbors. It acts both as:
+/// 
+/// • The static definition of adjacency rules for a single Module (provided by its Features).  
+/// • A dynamic aggregation of constraints during the CSPField collapse, where multiple possible 
+///   Modules are combined into a single set using the boolean operations of CellConstraint.
+/// 
+/// The length of the internal CellConstraint array corresponds to the tessellation of the CSPField. 
+/// During collapse, CellConstraintSets are derived from constrained CellSuperPositions 
+/// to propagate valid possibilities throughout the field.
 /// </summary>
 
 using System;

@@ -38,7 +38,7 @@ namespace WaveFunctionCollapse
             Constraint = maxEntropyPosition;
         }
 
-        public CellSuperPosition(A address, CellConstraint superPositions, int superPosIndex, int superOrIndex) // Use this contructor to load partially collapsed CSP fields
+        public CellSuperPosition(A address, CellConstraint superPositions, int superPosIndex, int superOrIndex) // Use this to reconstruct/load partially collapsed CSP fields
         {
             _address = address;
             Constraint = superPositions;
@@ -60,8 +60,8 @@ namespace WaveFunctionCollapse
 
         public void CollapseToModule (int moduleIndex, System.Random random)
         {
-            // This expects a MaxEntropyPosition or a the Superposition be uncontrainted,
-            // as the moduleindex is based on the full set of modules
+            // Expects a MaxEntropyPosition / an uncontrainted Superposition,
+            // as the moduleindex is based on the full set of possible modules
 
             if (Constraint.GetSuperPosition(moduleIndex).Possible())
             {
@@ -130,6 +130,7 @@ namespace WaveFunctionCollapse
             CellConstraintSet getSuperConstraints(SuperPosition superPosition)
             {
                 // Combine module constraints of all possible orientations
+
                 CellConstraintSet superConstraints = getRotatedContraints(superPosition, 0);
 
                 for (int i = 1; i < superPosition.Orientations.Count(); i ++)
@@ -181,12 +182,5 @@ namespace WaveFunctionCollapse
             ModuleIndex = moduleIndex;
             Orientation = orientation;
         }
-    }
-
-    public interface IAdjacentCell<A>
-    {
-        int Length { get; }
-        bool IsCollapsed(int i);
-        CellSuperPosition<A> GetCell(int i);
     }
 }

@@ -4,6 +4,7 @@
 /// 
 /// The MaxEntropyPosition represents the state where all Modules and their orientations
 /// are considered possible, i.e., the superposition with maximum uncertainty or entropy.
+/// It is necessary to create initial CellSuperPositions in a CSPfield.
 /// </summary>
 
 using UnityEngine;

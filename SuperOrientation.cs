@@ -55,6 +55,7 @@ namespace WaveFunctionCollapse
             while (orientations > 0)
             {
                 // Get the position of the lowest set bit
+
                 int orientation = CountTrailingZeros(orientations);
 
                 if (count == index)
@@ -67,8 +68,7 @@ namespace WaveFunctionCollapse
             return -1; // Index out of range
         }
 
-        // Helper method to count trailing zeros using bitwise operations
-        private static int CountTrailingZeros(int value)
+        private static int CountTrailingZeros(int value) // Helper method to count trailing zeros using bitwise operations
         {
             int count = 0;
             while ((value & 1) == 0)

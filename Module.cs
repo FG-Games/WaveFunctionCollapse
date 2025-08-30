@@ -6,8 +6,8 @@
 /// In the context of Wave Function Collapse, each Module provides a CellConstraintSet,
 /// which is necessary for initializing the collapse process in a CSPField.
 /// 
-/// A Module's CellConstraints are generated from Features, identified by string-based IDs.
-/// The current setup encodes each corner of a Module with one digit, 
+/// A Module's characteristic CellConstraintSet is generated from Features, 
+/// identified by string-based IDs. The current setup encodes each corner of a Module with one digit, 
 /// meaning each side is described by a pair of digits (e.g., 4 digits for a cube).
 /// The resulting Features, which represent side characteristics, are stored as bytes.
 /// 
